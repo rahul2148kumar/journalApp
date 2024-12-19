@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -63,20 +64,27 @@ public class JournalEntryService {
         logger.info("> updated journal into user dataDB: {}", updatedUser);
     }
 
+    @Transactional
     public JournalEntries saveJournalEntryOfUser(JournalEntries myJournal, String userName) {
-        User savedUser = userService.findByUserName(userName);
-        logger.info("> userName : {}, User Object :{}",userName, savedUser);
-        // save the journal into journal_entries database
-        JournalEntries savedJournalEntry = saveJournalEntry(myJournal);
-        logger.info("> updated journal into Journal dataDB: {}", savedJournalEntry);
+        try{
+            User savedUser = userService.findByUserName(userName);
+            logger.info("> userName : {}, User Object :{}",userName, savedUser);
+            // save the journal into journal_entries database
+            JournalEntries savedJournalEntry = saveJournalEntry(myJournal);
+            logger.info("> updated journal into Journal dataDB: {}", savedJournalEntry);
 
-        // save the journal id into user's journal list
-        List<JournalEntries> userJournalEntities=savedUser.getJournalEntities();
-        userJournalEntities.add(savedJournalEntry);
-        User updatedUser=userService.saveUserEntry(savedUser);
-        logger.info("> updated journal into user dataDB: {}", updatedUser);
+            // save the journal id into user's journal list
+            List<JournalEntries> userJournalEntities=savedUser.getJournalEntities();
+            userJournalEntities.add(savedJournalEntry);
+//            savedUser.setUserName(null);
+            User updatedUser=userService.saveUserEntry(savedUser);
+            logger.info("> updated journal into user dataDB: {}", updatedUser);
+            return savedJournalEntry;
+        }catch (Exception e){
+            logger.info("> Exception to save the journal of the user, Message: {}", e.getMessage());
+            throw new RuntimeException("> Exception to save the journal of the user, Message: {}", e.getCause());
+        }
 
-        return savedJournalEntry;
     }
 }
 
