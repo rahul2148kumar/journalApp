@@ -1,7 +1,9 @@
 package com.rahul.journalApp.controller;
 
-import com.rahul.journalApp.entity.JournalEntity;
+import com.rahul.journalApp.entity.JournalEntries;
+import com.rahul.journalApp.entity.User;
 import com.rahul.journalApp.service.JournalEntryService;
+import com.rahul.journalApp.service.UserService;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +23,16 @@ public class JournalEntryControllerV2 {
     @Autowired
     private JournalEntryService journalEntryService;
 
-    @GetMapping
-    public ResponseEntity<List<JournalEntity>> getAllJournals(){
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/{userName}")
+    public ResponseEntity<List<JournalEntries>> getAllJournalsEntriesOfUser(@PathVariable String userName){
+        User user = userService.findByUserName(userName);
+        logger.info("> user name: {}", user.getUserName());
+
         logger.info("Fetching all journals");
-        List<JournalEntity> allJournal= journalEntryService.getAllJournal();
+        List<JournalEntries> allJournal= user.getJournalEntities();
         if(allJournal !=null && !allJournal.isEmpty()){
             logger.info("> No of journals: {}", allJournal.size());
             return new ResponseEntity<>(allJournal, HttpStatus.OK);
@@ -32,10 +40,10 @@ public class JournalEntryControllerV2 {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping
-    public ResponseEntity<JournalEntity> createJournal(@RequestBody JournalEntity myJournal){
+    @PostMapping("/{userName}")
+    public ResponseEntity<JournalEntries> createJournal(@RequestBody JournalEntries myJournal, @PathVariable String userName){
         try{
-            JournalEntity savedJournalEntry=journalEntryService.saveJournalEntry(myJournal);
+            JournalEntries savedJournalEntry=journalEntryService.saveJournalEntryOfUser(myJournal, userName);
             return new ResponseEntity<>(savedJournalEntry, HttpStatus.CREATED);
         }catch (Exception e){
             logger.info("Exception occur while creating a journal entry, message: {}", e.getMessage());
@@ -45,25 +53,29 @@ public class JournalEntryControllerV2 {
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<JournalEntity> getJournalById(@PathVariable("id") ObjectId id){
+    public ResponseEntity<JournalEntries> getJournalById(@PathVariable("id") ObjectId id){
         logger.info("Fetching journal with id: {}", id);
-        Optional<JournalEntity> optionalJournalEntity = journalEntryService.findJournalById(id);
+        Optional<JournalEntries> optionalJournalEntity = journalEntryService.findJournalById(id);
         if(optionalJournalEntity.isPresent()){
             return new ResponseEntity<>(optionalJournalEntity.get(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/id/{id}")
-    public ResponseEntity<?> deleteJournal(@PathVariable("id") ObjectId id){
-        journalEntryService.deleteJournalById(id);
+    @DeleteMapping("/id/{userName}/{id}")
+    public ResponseEntity<?> deleteJournal(@PathVariable("id") ObjectId id,
+                                           @PathVariable("userName") String userName){
+        journalEntryService.deleteJournalByIdOfUser(userName, id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/id/{id}")
-    public ResponseEntity<JournalEntity> updateJournal(@PathVariable("id") ObjectId id, @RequestBody JournalEntity newJournal){
-        Optional<JournalEntity> optionalJournalEntity = journalEntryService.findJournalById(id);
-        JournalEntity oldJournal = optionalJournalEntity.orElse(null);
+    @PutMapping("/id/{userName}/{id}")
+    public ResponseEntity<JournalEntries> updateJournal(@PathVariable("id") ObjectId id,
+                                                        @PathVariable("userName") String userName,
+                                                        @RequestBody JournalEntries newJournal)
+    {
+        Optional<JournalEntries> optionalJournalEntity = journalEntryService.findJournalById(id);
+        JournalEntries oldJournal = optionalJournalEntity.orElse(null);
         if(oldJournal!=null){
             oldJournal.setTitle(newJournal.getTitle()!=null && !newJournal.getTitle().equals("")? newJournal.getTitle() : oldJournal.getTitle());
             oldJournal.setContent(newJournal.getContent()!=null && !newJournal.getContent().equals("")? newJournal.getContent() : oldJournal.getContent());
