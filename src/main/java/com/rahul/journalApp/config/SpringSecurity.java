@@ -1,7 +1,10 @@
 package com.rahul.journalApp.config;
 
+import com.rahul.journalApp.controller.JournalEntryControllerV2;
 import com.rahul.journalApp.entity.User;
 import com.rahul.journalApp.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +35,9 @@ public class SpringSecurity implements AuthenticationProvider {
     /**
      * Below is the custom security configurations
      */
+
+    private static final Logger logger = LoggerFactory.getLogger(SpringSecurity.class);
+
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
@@ -43,7 +49,7 @@ public class SpringSecurity implements AuthenticationProvider {
 
         http.csrf(csrf->csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/journal/**").authenticated()
+                        .requestMatchers("/journal/**", "/user/**").authenticated()
                         .anyRequest().permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(withDefaults());
@@ -54,25 +60,36 @@ public class SpringSecurity implements AuthenticationProvider {
     }
 
 
+    // User authentication validation
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        logger.info("> Starting authentication process...");
         String username = authentication.getName();
+        logger.info("> Attempting authentication for username: {}", username);
         String pwd = authentication.getCredentials().toString();
-        // List<Customer> customer = customerRepository.findByEmail(username);
-        User user =userRepository.findByUserName(username);
 
-        if(user != null){
-            if(passwordEncoder.matches(pwd, user.getPassword())){
-                List<GrantedAuthority> authorities = new ArrayList<>();
-                for (String role : user.getRoles()) {
-                    authorities.add(new SimpleGrantedAuthority(role));
+        try {
+            User user = userRepository.findByUserName(username);
+            if (user != null) {
+                logger.info("> User information retrieved successfully for username: {}", username);
+                if (passwordEncoder.matches(pwd, user.getPassword())) {
+                    List<GrantedAuthority> authorities = new ArrayList<>();
+                    for (String role : user.getRoles()) {
+                        authorities.add(new SimpleGrantedAuthority(role));
+                    }
+                    logger.info("> Authentication successful for username: {}", username);
+                    return new UsernamePasswordAuthenticationToken(username, pwd, authorities);
+                } else {
+                    logger.warn("--> Password validation failed for username: {} ", username);
+                    throw new BadCredentialsException("Invalid password");
                 }
-                return new UsernamePasswordAuthenticationToken(username, pwd, authorities);
-            }else{
-                throw new BadCredentialsException("Invalid password");
+            } else {
+                logger.warn("> No user found in the database for username: {}", username);
+                throw new BadCredentialsException("No user register with this details");
             }
-        }else {
-            throw new BadCredentialsException("No user register with this details");
+        }catch (Exception e) {
+            logger.error("An error occurred during authentication for username: {}", username, e);
+            throw new AuthenticationException("Authentication failed due to an internal error") {};
         }
     }
 
@@ -81,20 +98,4 @@ public class SpringSecurity implements AuthenticationProvider {
         return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
-//    @Bean
-//    public PasswordEncoder passwordEncoder(){
-//        return new BCryptPasswordEncoder();
-//    }
-
-
-
-
-
-
-        /*public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-            http.csrf().disable()
-                    .authorizeHttpRequests()
-
-        }
-         */
 }

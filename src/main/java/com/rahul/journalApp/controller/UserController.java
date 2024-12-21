@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,33 +17,38 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
 
-    private static final Logger logger = LoggerFactory.getLogger(JournalEntryControllerV2.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
 
-    @GetMapping
-    public List<User> getAllUsers(){
-        return userService.getAllUsers();
-    }
 
-
-    @PostMapping
-    public String createUser(@RequestBody User user){
-        userService.saveNewUser(user);
-        return "User Registered Successfully:";
-        // return userService.saveUserEntry(user);
-    }
-
-    @PutMapping("/{username}")
-    public ResponseEntity<?> updateUser(@PathVariable("username") String username, @RequestBody User user){
-        logger.info("> user update start...");
+    @PutMapping()
+    public ResponseEntity<?> updateUser(@RequestBody User user){
+        logger.info("> User Update begin...");
+        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+        String username= authentication.getName();
+        logger.info("> Username: {}", username);
         User userInfo=userService.findByUserName(username);
         if(userInfo !=null){
             userInfo.setUserName(user.getUserName());
             userInfo.setPassword(user.getPassword());
-            userService.saveUserEntry(userInfo);
+            userService.saveNewUser(userInfo);
         }
+        logger.info("> Updated user Successfully");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @DeleteMapping()
+    public ResponseEntity<String> deleteUser(){
+        logger.info("> Deleting user...");
+        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+        String username= authentication.getName();
+        logger.info("> Username: {}", username);
+        String result=userService.deleteUserByUsername(username);
+        logger.info("> Deleted User");
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+
 
 }

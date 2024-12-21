@@ -20,7 +20,7 @@ import java.util.Optional;
 @Component
 public class UserService {
 
-    private static final Logger logger = LoggerFactory.getLogger(JournalEntryControllerV2.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private static final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
@@ -49,6 +49,10 @@ public class UserService {
 
     public void deleteUserById(ObjectId id) {
         userRepository.deleteById(id);
+    }
+    public String deleteUserByUsername(String username){
+        userRepository.deleteByUserName(username);
+        return "user "+ username +" deleted";
     }
 
     public User findByUserName(String userName){
