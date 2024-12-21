@@ -1,9 +1,14 @@
 package com.rahul.journalApp.service;
 
+import com.rahul.journalApp.controller.JournalEntryControllerV2;
 import com.rahul.journalApp.entity.User;
 import com.rahul.journalApp.repository.UserRepository;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +20,18 @@ import java.util.Optional;
 @Component
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(JournalEntryControllerV2.class);
 
+    private static final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
     @Autowired
     private UserRepository userRepository;
+
+    public void saveNewUser(User user){
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+        logger.info("Register User Successfully: {}", user.getUserName());
+    }
 
     public User saveUserEntry(User user){
         User savedUser = userRepository.save(user);
