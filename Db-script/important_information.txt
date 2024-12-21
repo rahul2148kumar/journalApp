@@ -1,0 +1,4 @@
+** Create User: You can create a new user without authentication
+- To delete a user we have to put username and there password in basic auth
+- Public Api don't required authentication, Example: http://localhost:8080/public/create-user
+- Journal and User APIs required Authentication
