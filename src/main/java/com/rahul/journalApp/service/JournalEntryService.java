@@ -48,20 +48,26 @@ public class JournalEntryService {
         return journalEntityRepository.findById(id);
     }
 
+    @Transactional
     public void deleteJournalByIdOfUser(String userName, ObjectId id) {
-        User savedUser = userService.findByUserName(userName);
-        logger.info("> userName : {}, User Object :{}",userName, savedUser);
-        // Delete the journal into journal_entries database
-        JournalEntries journalEntries = findJournalById(id).get();
-        journalEntityRepository.deleteById(id);
+        try {
+            User savedUser = userService.findByUserName(userName);
+            logger.info("> userName : {}, User Object :{}", userName, savedUser);
+            // Delete the journal into journal_entries database
+            JournalEntries journalEntries = findJournalById(id).get();
+            journalEntityRepository.deleteById(id);
 
-        // Delete the journal id into user's journal list
-        List<JournalEntries> userJournalEntities=savedUser.getJournalEntities();
-        userJournalEntities.removeIf(journal-> journal.equals(journalEntries));
-        savedUser.setJournalEntities(userJournalEntities);
+            // Delete the journal id into user's journal list
+            List<JournalEntries> userJournalEntities = savedUser.getJournalEntities();
+            userJournalEntities.removeIf(journal -> journal.equals(journalEntries));
+            savedUser.setJournalEntities(userJournalEntities);
 
-        User updatedUser=userService.saveUserEntry(savedUser);
-        logger.info("> updated journal into user dataDB: {}", updatedUser);
+            User updatedUser = userService.saveUserEntry(savedUser);
+            logger.info("> updated journal into user dataDB: {}", updatedUser);
+        }catch (Exception e){
+            logger.info("An error occur during deleting the entry: {}", e.getMessage());
+            throw new RuntimeException("An error occur during deleting the entry", e);
+        }
     }
 
     @Transactional
@@ -85,6 +91,17 @@ public class JournalEntryService {
             throw new RuntimeException("> Exception to save the journal of the user, Message: {}", e.getCause());
         }
 
+    }
+
+    public boolean isJournalIdContainUser(ObjectId journalId, String userName){
+        User user = userService.findByUserName(userName);
+        for (var journal : user.getJournalEntities()) {
+            if (journal.getId().equals(journalId)) {
+                logger.info("> user [{}] have a journal whose id is: [{}]", userName, journal.getId());
+                return true;
+            }
+        }
+        return false;
     }
 }
 

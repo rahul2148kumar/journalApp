@@ -2,3 +2,49 @@
 - To delete a user we have to put username and there password in basic auth
 - Public Api don't required authentication, Example: http://localhost:8080/public/create-user
 - Journal and User APIs required Authentication
+
+
+
+getAllJournalsOfAUser:
+the user who login he can see there journals not all
+
+curl --location 'http://localhost:8080/journal' \
+--header 'Authorization: ••••••' \
+--header 'Cookie: JSESSIONID=F0BAF1FE74AF52B70CC59D56D90061EB; XSRF-TOKEN=ab8fc272-0811-4195-9f81-79baed3dff3e'
+
+
+
+
+FindJournalById:
+User who created those only can access the journal that means the user who login,
+he can only access. Any other journals can not access the user who has not created them
+
+curl --location 'http://localhost:8080/journal/id/6767233a019ccc1b330fc1c5' \
+--header 'Authorization: ••••••' \
+--header 'Cookie: JSESSIONID=F0BAF1FE74AF52B70CC59D56D90061EB; XSRF-TOKEN=ab8fc272-0811-4195-9f81-79baed3dff3e'
+
+
+
+
+updateJournal:
+User who created those only can access the journal and updated and delete them, that means the user who login,
+he can only access, update and delete. Any other journals, user can not access, updated or delete them
+
+curl --location --request PUT 'http://localhost:8080/journal/id/67673575b078d621ebe87ff6' \
+--data '{
+    "title": "Hii",
+    "content": "Hmmm"
+}'
+
+
+deleteJournalById:
+User who created those only can access the journal and updated and delete them, that means the user who login,
+he can only access, update and delete. Any other journals, user can not access, updated or delete them
+
+curl --location --request DELETE 'http://localhost:8080/journal/id/67672de0ed3d635c9def8f1b' \
+--header 'Authorization: Basic YWFhOjEyMzQ1'
+
+
+
+
+
