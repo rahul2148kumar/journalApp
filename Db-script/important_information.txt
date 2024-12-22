@@ -15,7 +15,10 @@ Run Application in specific environments:
 java -jar journalApp-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
 
 
-
+Environment Specific Configuration:
+We can use environment specif configuration like for "dev" we are authenticating user, but
+for "Prod" we modified our configuration so that we don't required any Authentication by
+using a annotation for dev - >@Profile("dev") or for prod -> @Profile("prod")
 
 
 getAllJournalsOfAUser:
