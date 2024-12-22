@@ -3,6 +3,7 @@ package com.rahul.journalApp.service;
 import com.rahul.journalApp.controller.JournalEntryControllerV2;
 import com.rahul.journalApp.entity.User;
 import com.rahul.journalApp.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,9 @@ import java.util.Optional;
 
 @Service
 @Component
+@Slf4j
 public class UserService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private static final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
@@ -33,7 +34,7 @@ public class UserService {
         user.setUserName(user.getUserName().toLowerCase());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
-        logger.info("Register User Successfully: {}", user.getUserName());
+        log.info("Register User Successfully: {}", user.getUserName());
     }
 
     public User saveUserEntry(User user){
@@ -66,10 +67,10 @@ public class UserService {
         try {
             user.setRoles(Arrays.asList("ROLE_USER", "ROLE_ADMIN"));
             saveNewUser(user);
-            logger.info("User {} has been given created and have a ADMIN access");
+            log.info("User {} has been given created and have a ADMIN access");
             return true;
         }catch (Exception e){
-            logger.info("An error occur while adding a user {}", e);
+            log.error("An error occur while adding a user : {}", e.getMessage());
         }
         return false;
     }

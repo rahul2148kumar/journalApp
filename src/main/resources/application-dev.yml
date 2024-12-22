@@ -11,8 +11,8 @@ server:
   servlet:
     context-path: /journal
 
-logging:
-  level:
-    com:
-      rahul:
-        journalApp: DEBUG
+#logging:
+#  level:
+#    com:
+#      rahul:
+#        journalApp: DEBUG
