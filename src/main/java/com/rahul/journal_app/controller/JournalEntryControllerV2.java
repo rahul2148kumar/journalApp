@@ -7,7 +7,6 @@ import com.rahul.journal_app.service.UserService;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,11 +21,15 @@ public class JournalEntryControllerV2 {
 
     private static final Logger logger = LoggerFactory.getLogger(JournalEntryControllerV2.class);
 
-    @Autowired
-    private JournalEntryService journalEntryService;
 
-    @Autowired
-    private UserService userService;
+    private final JournalEntryService journalEntryService;
+
+    private final UserService userService;
+
+    public JournalEntryControllerV2(JournalEntryService journalEntryService, UserService userService) {
+        this.journalEntryService = journalEntryService;
+        this.userService = userService;
+    }
 
     @GetMapping()
     public ResponseEntity<List<JournalEntries>> getAllJournalsEntriesOfUser(){
@@ -90,11 +93,11 @@ public class JournalEntryControllerV2 {
         String userName = authentication.getName();
         try{
             if(journalEntryService.isJournalIdContainUser(id, userName)){
-                logger.info("user : {} have journal id: {} ", userName, id.toString());
+                logger.info("user : {} have journal id: {} ", userName, id);
                 journalEntryService.deleteJournalByIdOfUser(userName, id);
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }else{
-                logger.info("user : {} don't have journal id: {} ", userName, id.toString());
+                logger.info("user : {} don't have journal id: {} ", userName, id);
                 return new ResponseEntity<>("user don't have given journal id", HttpStatus.NOT_FOUND);
             }
         }catch (Exception e){

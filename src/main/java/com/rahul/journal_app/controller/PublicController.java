@@ -15,9 +15,15 @@ import java.util.Arrays;
 @Slf4j
 public class PublicController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PublicController.class);
-    @Autowired
-    private UserService userService;
+
+
+    private final UserService userService;
+
+    public PublicController(UserService userService) {
+        this.userService = userService;
+    }
+
+
     @GetMapping("/health-check")
     public String healthCheck(){
         log.debug("> Trigger health-check API");

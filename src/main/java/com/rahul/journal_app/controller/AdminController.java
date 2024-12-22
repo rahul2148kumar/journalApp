@@ -29,7 +29,7 @@ public class AdminController {
     @PostMapping("/add-admin")
     public ResponseEntity<?> addAdmin(@RequestBody User user){
         Boolean isUserAdded=userService.addAdmin(user);
-        if(isUserAdded){
+        if(isUserAdded!=null && isUserAdded){
             return new ResponseEntity<>(user.getUserName()+" added with Admin Access", HttpStatus.CREATED);
         }
         return new ResponseEntity<>("An error occur to add the user", HttpStatus.NOT_ACCEPTABLE);
