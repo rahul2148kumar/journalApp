@@ -1,6 +1,5 @@
 package com.rahul.journalApp.config;
 
-import com.rahul.journalApp.controller.JournalEntryControllerV2;
 import com.rahul.journalApp.entity.User;
 import com.rahul.journalApp.repository.UserRepository;
 import org.slf4j.Logger;
@@ -14,13 +13,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -31,14 +28,14 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@Profile("dev")
-public class SpringSecurity implements AuthenticationProvider {
+@Profile("prod")
+public class SpringSecurityProd implements AuthenticationProvider {
 
     /**
      * Below is the custom security configurations
      */
 
-    private static final Logger logger = LoggerFactory.getLogger(SpringSecurity.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpringSecurityProd.class);
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -51,8 +48,6 @@ public class SpringSecurity implements AuthenticationProvider {
 
         http.csrf(csrf->csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/journal/**", "/user/**").authenticated()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(withDefaults());
