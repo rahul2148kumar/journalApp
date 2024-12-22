@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +30,7 @@ public class UserService {
     private UserRepository userRepository;
 
     public void saveNewUser(User user){
+        user.setUserName(user.getUserName().toLowerCase());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         logger.info("Register User Successfully: {}", user.getUserName());
@@ -57,5 +60,17 @@ public class UserService {
 
     public User findByUserName(String userName){
         return userRepository.findByUserName(userName);
+    }
+
+    public Boolean addAdmin(User user) {
+        try {
+            user.setRoles(Arrays.asList("ROLE_USER", "ROLE_ADMIN"));
+            saveNewUser(user);
+            logger.info("User {} has been given created and have a ADMIN access");
+            return true;
+        }catch (Exception e){
+            logger.info("An error occur while adding a user {}", e.getMessage());
+        }
+        return false;
     }
 }
