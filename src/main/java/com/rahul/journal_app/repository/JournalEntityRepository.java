@@ -1,6 +1,6 @@
-package com.rahul.journalApp.repository;
+package com.rahul.journal_app.repository;
 
-import com.rahul.journalApp.entity.JournalEntries;
+import com.rahul.journal_app.entity.JournalEntries;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;

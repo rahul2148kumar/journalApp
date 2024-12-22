@@ -1,9 +1,9 @@
-package com.rahul.journalApp.service;
+package com.rahul.journal_app.service;
 
-import com.rahul.journalApp.controller.JournalEntryControllerV2;
-import com.rahul.journalApp.entity.JournalEntries;
-import com.rahul.journalApp.entity.User;
-import com.rahul.journalApp.repository.JournalEntityRepository;
+import com.rahul.journal_app.controller.JournalEntryControllerV2;
+import com.rahul.journal_app.entity.JournalEntries;
+import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.repository.JournalEntityRepository;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

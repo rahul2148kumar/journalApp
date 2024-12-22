@@ -1,7 +1,7 @@
-package com.rahul.journalApp.controller;
+package com.rahul.journal_app.controller;
 
-import com.rahul.journalApp.entity.User;
-import com.rahul.journalApp.service.UserService;
+import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

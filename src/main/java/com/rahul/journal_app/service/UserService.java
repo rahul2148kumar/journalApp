@@ -1,12 +1,9 @@
-package com.rahul.journalApp.service;
+package com.rahul.journal_app.service;
 
-import com.rahul.journalApp.controller.JournalEntryControllerV2;
-import com.rahul.journalApp.entity.User;
-import com.rahul.journalApp.repository.UserRepository;
+import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;

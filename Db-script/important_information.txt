@@ -21,6 +21,10 @@ for "Prod" we modified our configuration so that we don't required any Authentic
 using a annotation for dev - >@Profile("dev") or for prod -> @Profile("prod")
 
 
+Connect sonar:
+./mvnw clean install sonar:sonar
+
+
 getAllJournalsOfAUser:
 the user who login he can see there journals not all
 

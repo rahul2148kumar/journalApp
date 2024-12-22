@@ -1,7 +1,7 @@
-package com.rahul.journalApp.service;
+package com.rahul.journal_app.service;
 
-import com.rahul.journalApp.entity.User;
-import com.rahul.journalApp.repository.UserRepository;
+import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,4 +1,4 @@
-package com.rahul.journalApp.config;
+package com.rahul.journal_app.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

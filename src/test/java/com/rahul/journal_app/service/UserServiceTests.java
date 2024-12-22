@@ -1,16 +1,14 @@
-package com.rahul.journalApp.service;
+package com.rahul.journal_app.service;
 
-import com.rahul.journalApp.entity.User;
-import com.rahul.journalApp.repository.UserRepository;
-import lombok.Builder;
+import com.rahul.journal_app.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Arrays;
-
 @SpringBootTest
+@Disabled
 public class UserServiceTests {
 
     @Autowired

@@ -1,7 +1,7 @@
-package com.rahul.journalApp.config;
+package com.rahul.journal_app.config;
 
-import com.rahul.journalApp.entity.User;
-import com.rahul.journalApp.repository.UserRepository;
+import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +28,14 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@Profile("prod")
-public class SpringSecurityProd implements AuthenticationProvider {
+@Profile("dev")
+public class SpringSecurity implements AuthenticationProvider {
 
     /**
      * Below is the custom security configurations
      */
 
-    private static final Logger logger = LoggerFactory.getLogger(SpringSecurityProd.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpringSecurity.class);
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -48,6 +48,8 @@ public class SpringSecurityProd implements AuthenticationProvider {
 
         http.csrf(csrf->csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/journal/**", "/user/**").authenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(withDefaults());

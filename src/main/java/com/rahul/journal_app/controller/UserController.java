@@ -1,29 +1,31 @@
-package com.rahul.journalApp.controller;
+package com.rahul.journal_app.controller;
 
-import com.rahul.journalApp.entity.User;
-import com.rahul.journalApp.service.UserService;
+import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
 
     @PutMapping()
-    public ResponseEntity<?> updateUser(@RequestBody User user){
+    public ResponseEntity<String> updateUser(@RequestBody User user){
         logger.info("> User Update begin...");
         Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
         String username= authentication.getName();
@@ -35,7 +37,7 @@ public class UserController {
             userService.saveNewUser(userInfo);
         }
         logger.info("> Updated user Successfully");
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("User Updated Successfully", HttpStatus.OK);
     }
 
     @DeleteMapping()

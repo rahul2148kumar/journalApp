@@ -1,6 +1,6 @@
-package com.rahul.journalApp;
+package com.rahul.journal_app;
 
-import com.rahul.journalApp.controller.JournalEntryControllerV2;
+import com.rahul.journal_app.controller.JournalEntryControllerV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
