@@ -3,6 +3,10 @@
 - Public Api don't required authentication, Example: http://localhost:8080/public/create-user
 - Journal and User APIs required Authentication
 
+** Priority: in Spring Boot, if both application.properties and application.yml files are present, application.properties has higher priority over application.yml.
+port: 8081
+context-path: /journal
+
 
 
 getAllJournalsOfAUser:

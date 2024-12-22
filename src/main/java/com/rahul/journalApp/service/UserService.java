@@ -69,7 +69,7 @@ public class UserService {
             logger.info("User {} has been given created and have a ADMIN access");
             return true;
         }catch (Exception e){
-            logger.info("An error occur while adding a user {}", e.getMessage());
+            logger.info("An error occur while adding a user {}", e);
         }
         return false;
     }
