@@ -65,7 +65,7 @@ public class JournalEntryService {
             User updatedUser = userService.saveUserEntry(savedUser);
             logger.info("> updated journal into user dataDB: {}", updatedUser);
         }catch (Exception e){
-            logger.info("An error occur during deleting the entry: {}", e.getMessage());
+            logger.error("An error occur during deleting the entry: {}", e.getMessage());
             throw new RuntimeException("An error occur during deleting the entry", e);
         }
     }
@@ -87,7 +87,7 @@ public class JournalEntryService {
             logger.info("> updated journal into user dataDB: {}", updatedUser);
             return savedJournalEntry;
         }catch (Exception e){
-            logger.info("> Exception to save the journal of the user, Message: {}", e.getMessage());
+            logger.error("> Exception to save the journal of the user, Message: {}", e.getMessage());
             throw new RuntimeException("> Exception to save the journal of the user, Message: {}", e.getCause());
         }
 

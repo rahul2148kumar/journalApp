@@ -2,6 +2,7 @@ package com.rahul.journalApp.controller;
 
 import com.rahul.journalApp.entity.User;
 import com.rahul.journalApp.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/public")
+@Slf4j
 public class PublicController {
 
     private static final Logger logger = LoggerFactory.getLogger(PublicController.class);
@@ -18,6 +20,7 @@ public class PublicController {
     private UserService userService;
     @GetMapping("/health-check")
     public String healthCheck(){
+        log.debug("> Trigger health-check API");
         return "ok";
     }
 
