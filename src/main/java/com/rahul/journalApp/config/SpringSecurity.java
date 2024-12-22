@@ -50,6 +50,7 @@ public class SpringSecurity implements AuthenticationProvider {
         http.csrf(csrf->csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/journal/**", "/user/**").authenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(withDefaults());
@@ -64,7 +65,7 @@ public class SpringSecurity implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         logger.info("> Starting authentication process...");
-        String username = authentication.getName();
+        String username = authentication.getName().toLowerCase();
         logger.info("> Attempting authentication for username: {}", username);
         String pwd = authentication.getCredentials().toString();
 
