@@ -3,21 +3,28 @@ package com.rahul.journal_app.service;
 import com.rahul.journal_app.api.response.WeatherResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-@Component
+
 @Service
 @Slf4j
 public class WeatherService {
 
-    private static final String apiKey="ef0096c229c46ce925ad9b29005d0044";
-    private static final String baseUrl="http://api.weatherstack.com/current?access_key=API_KEY&query=CITI";
-    @Autowired
-    private RestTemplate restTemplate;
+    @Value("${weather.api.key}")
+    private String apiKey;
+    @Value("${weather.api.url}")
+    private String baseUrl;
+
+    private final RestTemplate restTemplate;
+
+    public WeatherService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
 
     public WeatherResponse getWeather(String citi) {

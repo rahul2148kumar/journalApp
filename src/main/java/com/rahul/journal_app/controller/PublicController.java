@@ -47,7 +47,7 @@ public class PublicController {
     public ResponseEntity<?> getUserTwitterTweets(@RequestParam("id") String id){
         TwitterUser twitterUser = twitterService.getTweet(id);
         if(twitterUser!=null){
-            return new ResponseEntity<>(twitterUser.getDisplayText().toString(), HttpStatus.OK);
+            return new ResponseEntity<>(twitterUser.getDisplayText(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }

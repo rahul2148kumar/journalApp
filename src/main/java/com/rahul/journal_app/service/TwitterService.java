@@ -3,6 +3,7 @@ package com.rahul.journal_app.service;
 import com.rahul.journal_app.api.response.TwitterUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,9 +17,12 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class TwitterService {
 
-    private static final String rapidapi="4b75012982mshb827a1b5a697400p122c5ajsn2";
-
-    private static final String baseUrl="https://twitter-api45.p.rapidapi.com/tweet.php?id=USER_ID";
+    @Value("${twitter.api.key}")
+    private String apiKey;
+    @Value("${twitter.api.host}")
+    private String host;
+    @Value("${twitter.api.url}")
+    private String baseUrl;
     @Autowired
     private RestTemplate restTemplate;
 
@@ -27,13 +31,13 @@ public class TwitterService {
         try {
             // Set the headers
             HttpHeaders headers = new HttpHeaders();
-            headers.set("x-rapidapi-host", "twitter-api45.p.rapidapi.com");
-            headers.set("x-rapidapi-key", "4b75012982mshb827a1b5a697400p122c5ajsn25206f41ec7f");
+            headers.set("x-rapidapi-host", host);
+            headers.set("x-rapidapi-key", apiKey);
 
             // Create the HttpEntity with headers
             HttpEntity<String> entity = new HttpEntity<>(headers);
             ResponseEntity<TwitterUser> response = restTemplate.exchange(url, HttpMethod.GET, entity, TwitterUser.class);
-            if(response.getStatusCode().equals(200)){
+            if(response.getStatusCode().value()==200){
                 log.info("Successfully fetched");
             }
             log.info("Successfully fetched user data for user id: {}", id);
