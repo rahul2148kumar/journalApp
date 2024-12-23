@@ -1,5 +1,6 @@
 package com.rahul.journal_app.controller;
 
+import com.rahul.journal_app.cache.AppCache;
 import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,15 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AppCache appCache;
+
+
+
+    @GetMapping("/clear-app-cache")
+    public void clearAppCache(){
+        appCache.init();
+    }
 
     @GetMapping("/all-users")
     public ResponseEntity<List<User>> getAllUsers(){

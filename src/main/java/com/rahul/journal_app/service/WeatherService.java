@@ -1,6 +1,8 @@
 package com.rahul.journal_app.service;
 
 import com.rahul.journal_app.api.response.WeatherResponse;
+import com.rahul.journal_app.cache.AppCache;
+import com.rahul.journal_app.constants.Placeholder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,11 +17,13 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class WeatherService {
 
-    @Value("${weather.api.key}")
-    private String apiKey;
-    @Value("${weather.api.url}")
-    private String baseUrl;
+//    @Value("${weather.api.key}")
+//    private String apiKey;
+//    @Value("${weather.api.url}")
+//    private String baseUrl;
 
+    @Autowired
+    private AppCache appCache;
     private final RestTemplate restTemplate;
 
     public WeatherService(RestTemplate restTemplate) {
@@ -29,11 +33,14 @@ public class WeatherService {
 
     public WeatherResponse getWeather(String citi) {
         log.info("Fetching weather data for city: {}", citi);
-        String url = baseUrl.replace("CITI", citi).replace("API_KEY", apiKey);
-        log.debug("Constructed URL: {}", url);
+        String url=appCache.propertiesMap.get(Placeholder.WEATHER_API_URL);
+        String apiKey=appCache.propertiesMap.get(Placeholder.WEATHER_API_KEY);
+
+        String finalUrl = url.replace(Placeholder.CITI, citi).replace(Placeholder.WEATHER_API_KEY, apiKey);
+        log.debug("Constructed URL: {}", finalUrl);
 
         try {
-            ResponseEntity<WeatherResponse> response = restTemplate.exchange(url, HttpMethod.GET, null, WeatherResponse.class);
+            ResponseEntity<WeatherResponse> response = restTemplate.exchange(finalUrl, HttpMethod.GET, null, WeatherResponse.class);
             log.info("Successfully fetched weather data for city: {}", citi);
             return response.getBody();
         } catch (Exception e) {
