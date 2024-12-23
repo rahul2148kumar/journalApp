@@ -24,6 +24,8 @@ using a annotation for dev - >@Profile("dev") or for prod -> @Profile("prod")
 Connect sonar:
 ./mvnw clean install sonar:sonar
 
+.github/workflows/build.yml
+
 
 getAllJournalsOfAUser:
 the user who login he can see there journals not all

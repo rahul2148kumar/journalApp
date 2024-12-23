@@ -1,7 +1,9 @@
 package com.rahul.journal_app.controller;
 
+import com.rahul.journal_app.api.response.WeatherResponse;
 import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.service.UserService;
+import com.rahul.journal_app.service.WeatherService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,8 +21,11 @@ public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    private final WeatherService weatherService;
+
+    public UserController(UserService userService, WeatherService weatherService) {
         this.userService = userService;
+        this.weatherService = weatherService;
     }
 
 
@@ -42,15 +47,25 @@ public class UserController {
 
     @DeleteMapping()
     public ResponseEntity<String> deleteUser(){
-        logger.info("> Deleting user...");
         Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
         String username= authentication.getName();
-        logger.info("> Username: {}", username);
         String result=userService.deleteUserByUsername(username);
-        logger.info("> Deleted User");
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 
+    @GetMapping()
+    public ResponseEntity<?> greeting(@RequestParam("citi") String citi){
+        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+        String username= authentication.getName();
+        String feelsLikeTemp="NA";
+        WeatherResponse weatherResponse=weatherService.getWeather(citi);
+        if(weatherResponse!=null){
+            if(weatherResponse.getCurrent()!=null){
+                feelsLikeTemp= String.valueOf(weatherResponse.getCurrent().getFeelslike());
+            }
+        }
+        return new ResponseEntity<>("Hi "+username+", Weather feels like "+feelsLikeTemp, HttpStatus.OK);
+    }
 
 }
