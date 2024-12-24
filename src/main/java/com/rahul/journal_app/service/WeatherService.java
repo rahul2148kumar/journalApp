@@ -17,37 +17,49 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class WeatherService {
 
-//    @Value("${weather.api.key}")
-//    private String apiKey;
-//    @Value("${weather.api.url}")
-//    private String baseUrl;
+    @Value("${weather.api.key}")
+    private String apiKey;
+    @Value("${weather.api.url}")
+    private String baseUrl;
 
     @Autowired
     private AppCache appCache;
-    private final RestTemplate restTemplate;
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private RedisService redisService;
 
-    public WeatherService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
 
 
-    public WeatherResponse getWeather(String citi) {
-        log.info("Fetching weather data for city: {}", citi);
-        String url=appCache.propertiesMap.get(Placeholder.WEATHER_API_URL);
-        String apiKey=appCache.propertiesMap.get(Placeholder.WEATHER_API_KEY);
 
-        String finalUrl = url.replace(Placeholder.CITI, citi).replace(Placeholder.WEATHER_API_KEY, apiKey);
+    public WeatherResponse getWeather(String city) {
+        city = city.toLowerCase();
+        String weatherOfCity="weather_of_"+city;
+        WeatherResponse weatherResponse=redisService.get(weatherOfCity, WeatherResponse.class);
+        if(weatherResponse != null){
+            return weatherResponse;
+        }
+        log.info("Fetching weather data for city: {}", city);
+        String finalUrl = baseUrl.replace(Placeholder.CITY, city).replace(Placeholder.WEATHER_API_KEY, apiKey);
         log.debug("Constructed URL: {}", finalUrl);
+
+        /*String url=appCache.propertiesMap.get(Placeholder.WEATHER_API_URL);
+        String apiKey=appCache.propertiesMap.get(Placeholder.WEATHER_API_KEY);
+        String finalUrl = url.replace(Placeholder.CITY, city).replace(Placeholder.WEATHER_API_KEY, apiKey);*/
 
         try {
             ResponseEntity<WeatherResponse> response = restTemplate.exchange(finalUrl, HttpMethod.GET, null, WeatherResponse.class);
-            log.info("Successfully fetched weather data for city: {}", citi);
-            return response.getBody();
+            log.info("Successfully fetched weather data for city: {}", city);
+            WeatherResponse body = response.getBody();
+            if(body !=null){
+                redisService.set(weatherOfCity, body, 300l);
+            }
+            return body;
         } catch (Exception e) {
-            log.error("Error occurred while fetching weather data for city: {}. Error: {}", citi, e.getMessage(), e);
+            log.error("Error occurred while fetching weather data for city: {}. Error: {}", city, e.getMessage(), e);
         }
 
-        log.warn("Returning null for city: {} as no weather data could be fetched.", citi);
+        log.warn("Returning null for city: {} as no weather data could be fetched.", city);
         return null;
     }
 }

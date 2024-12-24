@@ -55,17 +55,29 @@ public class UserController {
 
 
     @GetMapping()
-    public ResponseEntity<?> greeting(@RequestParam("citi") String citi){
+    public ResponseEntity<?> greeting(){
         Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
         String username= authentication.getName();
+        User user=userService.findByUserName(username);
+        String city=user.getCity();
         String feelsLikeTemp="NA";
-        WeatherResponse weatherResponse=weatherService.getWeather(citi);
+        if(city ==null || city.equals("")){
+            return new ResponseEntity<>("The city field for the user is either empty or null.", HttpStatus.NOT_FOUND);
+        }
+        WeatherResponse weatherResponse=weatherService.getWeather(city);
         if(weatherResponse!=null){
             if(weatherResponse.getCurrent()!=null){
                 feelsLikeTemp= String.valueOf(weatherResponse.getCurrent().getFeelslike());
             }
         }
-        return new ResponseEntity<>("Hi "+username+", Weather feels like "+feelsLikeTemp, HttpStatus.OK);
+        return new ResponseEntity<>("Hello " + capitalizeFirstChar(username) + ", the weather in " + city + " feels like " + feelsLikeTemp + ".", HttpStatus.OK);
     }
 
+
+    public String capitalizeFirstChar(String input) {
+        if (input == null || input.isEmpty()) {
+            return input; // Return as is for null or empty input
+        }
+        return input.substring(0, 1).toUpperCase() + input.substring(1);
+    }
 }
