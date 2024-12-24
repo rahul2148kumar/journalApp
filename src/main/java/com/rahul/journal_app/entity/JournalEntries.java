@@ -1,5 +1,6 @@
 package com.rahul.journal_app.entity;
 
+import com.rahul.journal_app.enums.Sentiment;
 import lombok.*;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
@@ -19,5 +20,6 @@ public class JournalEntries {
     private String content;
     @CreatedDate
     private Date date;
+    private Sentiment sentiment;
 
 }
