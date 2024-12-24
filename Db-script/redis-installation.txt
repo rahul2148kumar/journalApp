@@ -1,0 +1,29 @@
+
+
+Installation:-> brew install redis
+
+To test your Redis installation:-> redis-server
+To stop Redis, enter Ctrl-C.
+
+**Starting and stopping Redis using launchd
+start the process in the background:-> brew services start redis
+check the status of a launchd managed Redis by running the following:-> brew services info redis
+To stop the service:-> brew services stop redis
+
+Connect to Redis
+Once Redis is running, you can test it by running redis-cli:-> redis-cli
+
+Test the connection with the ping command:
+127.0.0.1:6379> ping
+PONG
+
+** To Connect with redis-cloud:
+Requirement:
+1. Host
+2. Port
+3. Password
+
+then you need to create bean for RedisConnectionFactory
+
+
+link: https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-mac-os/
