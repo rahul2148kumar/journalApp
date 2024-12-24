@@ -1,4 +1,44 @@
-
 spring:
-  profiles:
-    active: dev
+    profiles:
+        active: dev
+#  redis:
+#    host: redis-14040.xxxx.ap-south-1-1.xxx.redns.redis-cloud.com
+#    port: 14040
+#    password: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: xxxxxxxx@gmail.com
+#    password: xxxx xxxx xxxx xxxx
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#  data:
+#    mongodb:
+#      uri: mongodb+srv://xxxxxxxxxxxx:xxxxxxxxxxx@cluster0.vvonv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+#      database: journaldb
+#      auto-index: true
+
+
+
+
+
+#weather:
+#  api:
+#    key: xxxxxxxxxxxxxxxxxxxxxxxxxxx
+#    url: http://api.weatherstack.com/current?access_key=weatherApiKey&query=city
+#
+#twitter:
+#  api:
+#    key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#    host: twitter-api45.p.rapidapi.com
+#    url: https://twitter-api45.p.rapidapi.com/tweet.php?id=USER_ID
+#
+#server:
+#  port: 8081
+#  servlet:
+#    context-path: /journal
