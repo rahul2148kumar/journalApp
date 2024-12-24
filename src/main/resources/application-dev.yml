@@ -1,9 +1,15 @@
-
 spring:
+  redis:
+    host: your_redis_host # Replace with your Redis Cloud host
+    port: your_redis_port # Replace with your Redis Cloud port
+    password: your_redis_password # Replace with your Redis Cloud password
+
+
+
   data:
     mongodb:
-      uri: mongodb+srv://rahul2148kumar:iawyybB4QXIIUTD5@cluster0.vvonv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-      database: journaldb
+      uri: mongodb+srv://<username>:<password>@cluster0.mongodb.net/<database>?retryWrites=true&w=majority
+      database: <database> # Replace with your database name
       auto-index: true
 
 server:
