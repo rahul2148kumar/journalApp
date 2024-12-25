@@ -41,8 +41,8 @@ public class UserScheduler {
     private KafkaTemplate<String, SentimentalData> kafkaTemplate;
 
 
-//    @Scheduled(cron = "0 0 9 * * SUN")
-    @Scheduled(cron = "0 * * ? * *")
+    @Scheduled(cron = "0 0 9 * * SUN")
+//    @Scheduled(cron = "0 * * ? * *")
     public void fetchUserAndSendSaMail(){
         log.info("Scheduler started");
         List<User> users =userRepositoryImpl.getUsersForSentimentAnalysis();

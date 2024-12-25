@@ -1,16 +1,20 @@
 package com.rahul.journal_app.config;
 
 import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.filter.JwtFilter;
 import com.rahul.journal_app.repository.UserRepository;
+import com.rahul.journal_app.service.UserDetailsServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +24,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +34,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 @Profile("dev")
-public class SpringSecurity implements AuthenticationProvider {
+public class SpringSecurity implements AuthenticationProvider, AuthenticationManager {
 
     /**
      * Below is the custom security configurations
@@ -38,9 +43,14 @@ public class SpringSecurity implements AuthenticationProvider {
     private static final Logger logger = LoggerFactory.getLogger(SpringSecurity.class);
 
     @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+    @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    private JwtFilter jwtFilter;
 
 
     @Bean
@@ -51,11 +61,12 @@ public class SpringSecurity implements AuthenticationProvider {
                         .requestMatchers("/journal/**", "/user/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll());
-        http.formLogin(withDefaults());
-        http.httpBasic(withDefaults());
-        http.sessionManagement(session->{
-            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        });
+
+//        http.sessionManagement(session->{
+//            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+//        });
+
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
