@@ -1,6 +1,33 @@
 spring:
+#    kafka:
+#        bootstrap-servers: xxxxxxxx.ap-south-1.aws.confluent.cloud:9092
+#        producer:
+#            key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#            value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+#        consumer:
+#            group-id: weekly-sentiment-group
+#            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#            value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#            properties:
+#                spring:
+#                    json:
+#                        trusted:
+#                            packages: com.rahul.journal_app.model
+#        properties:
+#            security:
+#                protocol: SASL_SSL
+#            sasl:
+#                mechanism: PLAIN
+#                jaas:
+#                    config: org.apache.kafka.common.security.plain.PlainLoginModule required username='xxxxx' password='xxxxxxxxxxxxxx';
+#            session:
+#                timeout:
+#                    ms: 45000
+
+
     profiles:
         active: dev
+
 #  redis:
 #    host: redis-14040.xxxx.ap-south-1-1.xxx.redns.redis-cloud.com
 #    port: 14040

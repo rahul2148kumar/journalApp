@@ -4,10 +4,12 @@ import com.rahul.journal_app.enums.Sentiment;
 import com.rahul.journal_app.cache.AppCache;
 import com.rahul.journal_app.entity.JournalEntries;
 import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.model.SentimentalData;
 import com.rahul.journal_app.repository.UserRepositoryImpl;
 import com.rahul.journal_app.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -35,10 +37,12 @@ public class UserScheduler {
     @Autowired
     private AppCache appCache;
 
+    @Autowired
+    private KafkaTemplate<String, SentimentalData> kafkaTemplate;
 
 
-    @Scheduled(cron = "0 0 9 * * SUN")
-//    @Scheduled(cron = "0 * * ? * *")
+//    @Scheduled(cron = "0 0 9 * * SUN")
+    @Scheduled(cron = "0 * * ? * *")
     public void fetchUserAndSendSaMail(){
         log.info("Scheduler started");
         List<User> users =userRepositoryImpl.getUsersForSentimentAnalysis();
@@ -57,14 +61,20 @@ public class UserScheduler {
 
             Sentiment mostFrequentSentiment=findMostFrequentSentiment(sentimentList);
             if (mostFrequentSentiment != null) {
-                String subject = "Your Sentiment Analysis Report";
+//                String subject = "Your Sentiment Analysis Report";
                 String body = "Dear " + user.getUserName() + ",\n\n" +
                         "We have analyzed your content and observed that the predominant sentiment in your posts is: " + mostFrequentSentiment.toString() + ".\n\n" +
                         "Thank you for using our platform, and we hope to continue providing valuable insights to you.\n\n" +
                         "Best regards,\n" +
                         "The Sentiment Analysis Team\n" +
                         "Rahul Kumar";
-                emailService.sendMail(user.getEmail(), subject, body);
+//                emailService.sendMail(user.getEmail(), subject, body);
+
+                SentimentalData sentimentalData = SentimentalData.builder()
+                        .email(user.getEmail())
+                        .sentiment(body)
+                        .build();
+                kafkaTemplate.send("weekly-sentiments", sentimentalData.getEmail(), sentimentalData);
             }
         }
     }
