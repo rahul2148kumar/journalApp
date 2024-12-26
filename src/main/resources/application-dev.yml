@@ -47,7 +47,7 @@ spring:
             enable: true
   data:
     mongodb:
-      uri: mongodb+srv://rahul2148kumar:iawyybB4QXIIUTD5@cluster0.vvonv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      uri: mongodb+srv://rahul2148kumar:iawyybB4QXIIUTD5@cluster0.vvonv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true
       database: journaldb
       auto-index: true
 
