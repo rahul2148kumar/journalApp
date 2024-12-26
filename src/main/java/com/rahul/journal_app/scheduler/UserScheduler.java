@@ -41,8 +41,8 @@ public class UserScheduler {
     private KafkaTemplate<String, SentimentalData> kafkaTemplate;
 
 
-//    @Scheduled(cron = "0 0 9 * * SUN")
-    @Scheduled(cron = "0 * * ? * *")
+    @Scheduled(cron = "0 0 9 * * SUN")
+//    @Scheduled(cron = "0 * * ? * *")
     public void fetchUserAndSendSaMail(){
         log.info("Scheduler started");
         List<User> users =userRepositoryImpl.getUsersForSentimentAnalysis();
@@ -61,7 +61,7 @@ public class UserScheduler {
 
             Sentiment mostFrequentSentiment=findMostFrequentSentiment(sentimentList);
             if (mostFrequentSentiment != null) {
-//                String subject = "Your Sentiment Analysis Report";
+                String subject = "Your Sentiment Analysis Report";
                 String body = "Dear " + user.getUserName() + ",\n\n" +
                         "We have analyzed your content and observed that the predominant sentiment in your posts is: " + mostFrequentSentiment.toString() + ".\n\n" +
                         "Thank you for using our platform, and we hope to continue providing valuable insights to you.\n\n" +
@@ -74,7 +74,12 @@ public class UserScheduler {
                         .email(user.getEmail())
                         .sentiment(body)
                         .build();
-                kafkaTemplate.send("weekly-sentiments", sentimentalData.getEmail(), sentimentalData);
+                try {
+                    kafkaTemplate.send("weekly-sentiments", sentimentalData.getEmail(), sentimentalData);
+                }catch (Exception e){
+                    // fall back, if kafka not working
+                    emailService.sendMail(sentimentalData.getEmail(), subject, body);
+                }
             }
         }
     }

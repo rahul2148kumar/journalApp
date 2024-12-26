@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @Component
@@ -25,6 +26,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public void saveNewUser(User user){
         user.setUserName(user.getUserName().toLowerCase());
@@ -69,5 +73,43 @@ public class UserService {
             log.error("An error occur while adding a user : {}", e.getMessage());
         }
         return false;
+    }
+
+    public User findUserByEmail(String email) {
+        Optional<User> optionalUser=userRepository.findByEmail(email);
+        if(optionalUser.isPresent()){
+            return optionalUser.get();
+        }
+        return null;
+    }
+
+    public void sendForgetEmailPassword(User user) {
+        final String password=generatePassword();
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+        String subject = "Password Recovery Request";
+        String body = "Dear " + user.getUserName() + ",\n\n" +
+                "We received a request to reset your password. Here is your temporary password:\n\n" +
+                "User Name: " + user.getUserName() + "\n" +
+                "Temporary Password: " + password + "\n\n" +
+                "Please log in using this password and update it immediately to secure your account.\n" +
+                "For your security, please do not share this password with anyone.\n\n" +
+                "If you did not request a password reset, please contact our support team.\n\n" +
+                "Best regards,\n" +
+                "The Journal Application Team";
+        emailService.sendMail(user.getEmail(), subject, body);
+    }
+
+    public static String generatePassword() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"; // Define the allowed character set
+        Random random = new Random();
+        int length = random.nextInt(9) + 8; // Generate a random length between 8 and 16
+
+        StringBuilder password = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            password.append(characters.charAt(index));
+        }
+        return password.toString();
     }
 }

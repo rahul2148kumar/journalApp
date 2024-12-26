@@ -1,6 +1,8 @@
 package com.rahul.journal_app.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.rahul.journal_app.enums.Sentiment;
+import com.rahul.journal_app.serializer.ObjectIdToStringSerializer;
 import lombok.*;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
@@ -15,6 +17,7 @@ import java.util.Date;
 public class JournalEntries {
 
     @Id
+    @JsonSerialize(using = ObjectIdToStringSerializer.class)
     private ObjectId id;
     private String title;
     private String content;
