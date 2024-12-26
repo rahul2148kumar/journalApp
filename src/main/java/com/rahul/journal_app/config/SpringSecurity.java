@@ -33,7 +33,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@Profile("dev")
+//@Profile("dev")
 public class SpringSecurity implements AuthenticationProvider, AuthenticationManager {
 
     /**
