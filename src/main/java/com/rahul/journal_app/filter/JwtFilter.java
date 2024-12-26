@@ -28,27 +28,6 @@ public class JwtFilter extends OncePerRequestFilter implements Filter {
     @Autowired
     private JwtUtil jwtUtil;
 
-/*
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        String authorizationHeader = request.getHeader("Authorization");
-        String username = null;
-        String jwt = null;
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
-        }
-        if (username != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateToken(jwt)) {
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-        }
-        chain.doFilter(request, response);
-    }*/
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -61,28 +40,28 @@ public class JwtFilter extends OncePerRequestFilter implements Filter {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 jwt = authorizationHeader.substring(7);
                 username = jwtUtil.extractUsername(jwt);
-            }else {
-                log.warn("No valid Authorization header found.");
-            }
 
-            if (username != null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (jwtUtil.validateToken(jwt)) {
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }else{
-                    log.warn("JWT token expired for user: {}", username);
+                if (username != null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    if (jwtUtil.validateToken(jwt)) {
+                        UsernamePasswordAuthenticationToken auth =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }else{
+                        log.warn("JWT token expired for user: {}", username);
+                    }
+                }else {
+                    log.warn("Invalid JWT token");
                 }
             }else {
-                log.warn("JWT is invalid for user: {}", username);
+                log.debug("No valid Authorization header found.");
             }
         }catch (Exception e){
             log.error("Exception occurred during JWT processing: {}", e.getMessage(), e);
         }
 
-        response.addHeader("Admin", "rahul");
+        // response.addHeader("Admin", "rahul");
         chain.doFilter(request, response);
     }
 
