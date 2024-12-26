@@ -1,5 +1,7 @@
 package com.rahul.journal_app.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.rahul.journal_app.serializer.ObjectIdToStringSerializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
@@ -15,6 +17,7 @@ import java.util.Date;
 public class ConfigJournalAppEntity {
 
     @Id
+    @JsonSerialize(using = ObjectIdToStringSerializer.class)
     private ObjectId id;
     private String key;
     private String value;
