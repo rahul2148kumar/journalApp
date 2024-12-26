@@ -93,4 +93,15 @@ public class PublicController {
         }
     }
 
+    @GetMapping("/send-forget-password-email")
+    public ResponseEntity<String> getForgetPasswordEmail(@RequestParam("email") String email){
+
+        User user=userService.findUserByEmail(email);
+        if(user !=null){
+            userService.sendForgetEmailPassword(user);
+            return new ResponseEntity<>("A email is sent to the user with temporary password", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Email not found", HttpStatus.BAD_REQUEST);
+    }
+
 }
