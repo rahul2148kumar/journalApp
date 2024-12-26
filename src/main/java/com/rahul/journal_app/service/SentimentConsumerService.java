@@ -22,6 +22,6 @@ public class SentimentConsumerService {
 
     private void sendEmail(SentimentalData sentimentalData) {
         log.info("Sending Email to user: {}", sentimentalData.getEmail());
-        emailService.sendMail(sentimentalData.getEmail(), "Sentiment for previous week", sentimentalData.getSentiment());
+        emailService.sendMail(sentimentalData.getEmail(), "Your Sentiment Analysis Report", sentimentalData.getSentiment());
     }
 }
