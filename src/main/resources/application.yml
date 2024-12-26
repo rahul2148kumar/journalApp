@@ -1,71 +1,63 @@
 spring:
-#    kafka:
-#        bootstrap-servers: xxxxxxxx.ap-south-1.aws.confluent.cloud:9092
-#        producer:
-#            key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#            value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-#        consumer:
-#            group-id: weekly-sentiment-group
-#            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#            value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-#            properties:
-#                spring:
-#                    json:
-#                        trusted:
-#                            packages: com.rahul.journal_app.model
-#        properties:
-#            security:
-#                protocol: SASL_SSL
-#            sasl:
-#                mechanism: PLAIN
-#                jaas:
-#                    config: org.apache.kafka.common.security.plain.PlainLoginModule required username='xxxxx' password='xxxxxxxxxxxxxx';
-#            session:
-#                timeout:
-#                    ms: 45000
+    kafka:
+        bootstrap-servers: ${KAFKA_SERVERS}
+        producer:
+            key-serializer: org.apache.kafka.common.serialization.StringSerializer
+            value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+        consumer:
+            group-id: weekly-sentiment-group
+            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+            properties:
+                spring:
+                    json:
+                        trusted:
+                            packages: com.rahul.journal_app.model
+        properties:
+            security:
+                protocol: SASL_SSL
+            sasl:
+                mechanism: PLAIN
+                jaas:
+                    config: ${KAFKA_CONFIG}
+            session:
+                timeout:
+                    ms: 45000
 
+    redis:
+        host: ${REDIS_HOST}
+        port: 14040
+        password: ${REDIS_PASSWORD}
 
-    profiles:
-        active: dev
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${JAVA_EMAIL}
+        password: ${JAVA_EMAIL_PASSWORD}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+    data:
+        mongodb:
+            uri: ${MONGODB_URI}
+            database: journaldb
+            auto-index: true
 
-#  redis:
-#    host: redis-14040.xxxx.ap-south-1-1.xxx.redns.redis-cloud.com
-#    port: 14040
-#    password: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#
-#  mail:
-#    host: smtp.gmail.com
-#    port: 587
-#    username: xxxxxxxx@gmail.com
-#    password: xxxx xxxx xxxx xxxx
-#    properties:
-#      mail:
-#        smtp:
-#          auth: true
-#          starttls:
-#            enable: true
-#  data:
-#    mongodb:
-#      uri: mongodb+srv://xxxxxxxxxxxx:xxxxxxxxxxx@cluster0.vvonv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-#      database: journaldb
-#      auto-index: true
+weather:
+    api:
+        key: ${WEATHER_API_KEY}
+        url: http://api.weatherstack.com/current?access_key=weatherApiKey&query=city
 
+twitter:
+    api:
+        key: ${TWITTER_API_KEY}
+        host: twitter-api45.p.rapidapi.com
+        url: https://twitter-api45.p.rapidapi.com/tweet.php?id=USER_ID
 
-
-
-
-#weather:
-#  api:
-#    key: xxxxxxxxxxxxxxxxxxxxxxxxxxx
-#    url: http://api.weatherstack.com/current?access_key=weatherApiKey&query=city
-#
-#twitter:
-#  api:
-#    key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-#    host: twitter-api45.p.rapidapi.com
-#    url: https://twitter-api45.p.rapidapi.com/tweet.php?id=USER_ID
-#
-#server:
-#  port: 8081
-#  servlet:
-#    context-path: /journal
+server:
+    port: ${SERVER_PORT}
+    servlet:
+        context-path: /journal

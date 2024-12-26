@@ -16,7 +16,7 @@ public class JournalApplication {
 
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context =SpringApplication.run(JournalApplication.class, args);
-		logger.info("> Active Environment: {}", context.getEnvironment().getActiveProfiles()[0]);
+		logger.info("> Active Environment: {}", context.getEnvironment());
 	}
 
 }
