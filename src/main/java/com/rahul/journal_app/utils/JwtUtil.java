@@ -1,8 +1,11 @@
 package com.rahul.journal_app.utils;
 
+import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +17,9 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
+    @Autowired
+    private UserService userService;
+
     @Value("${jwt.secret_key}")
     private String secretKey;
 
@@ -21,17 +27,37 @@ public class JwtUtil {
     private Long jwtExpirationTime; // in minute
 
     public String generateToken(String username) {
-        Map<String, Object> claims = new HashMap<>(); // you can send your payload here, like username, email, role etc
+        Map<String, Object> claims = setClaims(username);
         return createJwtToken(claims, username);
     }
 
+    private Map<String, Object> setClaims(String username) {
+        Map<String, Object> claims = new HashMap<>(); // you can send your payload here, like username, email, role etc
+        User user = userService.findByUserName(username);
+        if(user != null){
+            if(user.getEmail() !=null && !user.getEmail().equals("")){
+                claims.put("email", user.getEmail());
+            }
+
+            Boolean isUserAdmin=user.getRoles().stream()
+                    .anyMatch(role->"ADMIN".equals(role));
+            if(isUserAdmin){
+                claims.put("role", "ADMIN");
+            }else{
+                claims.put("role", "USER");
+            }
+        }
+        return claims;
+    }
+
     private String createJwtToken(Map<String, Object> claims, String username) {
+
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
-                .setHeaderParam("typ", "JWT")
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * jwtExpirationTime)) // 60 minutes
+                .claims(claims)
+                .subject(username)
+                .header().add("typ", "JWT").and()
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * jwtExpirationTime))
                 .signWith(getSignKey())
                 .compact();
     }
