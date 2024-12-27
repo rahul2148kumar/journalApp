@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import javax.xml.crypto.Data;
-import java.security.Key;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
@@ -17,7 +15,10 @@ import java.util.Date;
 public class JwtUtil {
 
     @Value("${jwt.secret_key}")
-    private String SECRET_KEY;
+    private String secretKey;
+
+    @Value("${jwt.expiration_time}")
+    private Long jwtExpirationTime; // in minute
 
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>(); // you can send your payload here, like username, email, role etc
@@ -30,13 +31,13 @@ public class JwtUtil {
                 .setSubject(username)
                 .setHeaderParam("typ", "JWT")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 60 minutes
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * jwtExpirationTime)) // 60 minutes
                 .signWith(getSignKey())
                 .compact();
     }
 
     private SecretKey getSignKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     public String extractUsername(String jwtToken) {
