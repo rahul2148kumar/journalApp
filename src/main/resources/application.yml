@@ -64,3 +64,4 @@ server:
 
 jwt:
     secret_key: ${JWT_SECRET_KEY}
+    expiration_time: ${JWT_EXPIRY_TIME_IN_MINUTE}
