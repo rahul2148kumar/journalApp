@@ -1,12 +1,10 @@
-userName: rahul2148kumar
-password :iawyybB4QXIIUTD5
+
 
 
 
 Connection String: mongodb+srv://rahul2148kumar:<db_password>@cluster0.vvonv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 
-mongodb login : rahul2148kumar@gmail.com
-          pass: Stop@mongodb
+
 
 
 {
