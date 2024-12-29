@@ -37,8 +37,9 @@ public class UserController {
         logger.info("> Username: {}", username);
         User userInfo=userService.findByUserName(username);
         if(userInfo !=null){
-            userInfo.setUserName(user.getUserName());
-            userInfo.setPassword(user.getPassword());
+            userInfo.setUserName((user.getUserName()!=null && !user.getUserName().equals(""))? user.getUserName(): userInfo.getUserName());
+            userInfo.setPassword((user.getPassword()!=null && !user.getPassword().equals(""))? user.getPassword(): userInfo.getPassword());
+            userInfo.setCity((user.getCity()!=null && user.getCity().equals(""))? user.getCity(): userInfo.getCity());
             userService.saveNewUser(userInfo);
         }
         logger.info("> Updated user Successfully");

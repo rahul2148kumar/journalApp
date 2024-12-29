@@ -2,6 +2,7 @@ package com.rahul.journal_app.controller;
 
 import com.rahul.journal_app.cache.AppCache;
 import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.model.UserDto;
 import com.rahul.journal_app.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,8 +29,8 @@ public class AdminController {
     }
 
     @GetMapping("/all-users")
-    public ResponseEntity<List<User>> getAllUsers(){
-        List<User> allUsers =userService.getAllUsers();
+    public ResponseEntity<List<UserDto>> getAllUsers(){
+        List<UserDto> allUsers =userService.getAllUsers();
         if(allUsers !=null && !allUsers.isEmpty()){
             return new ResponseEntity<>(allUsers, HttpStatus.OK);
         }
