@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,17 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserDto {
-
-    @JsonSerialize(using = ObjectIdToStringSerializer.class)
-    private ObjectId id;
-    private String userName;
+public class UserOtpDto {
     private String email;
-    private String city;
-    private boolean sentimentAnalysis;
-    private boolean verified;
-    private List<String> roles;
-    private List<JournalEntries> journalEntities= new ArrayList<>();
-    private LocalDateTime userCreatedDate;
-    private LocalDateTime userUpdatedDate;
+    private String otp;
 }

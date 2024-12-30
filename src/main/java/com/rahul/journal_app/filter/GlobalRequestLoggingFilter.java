@@ -19,7 +19,7 @@ public class GlobalRequestLoggingFilter implements Filter {
         String httpMethod = httpRequest.getMethod();
         String requestUri = httpRequest.getRequestURI();
 
-        log.info("HttpMethod: {} :: Path: {}", httpMethod, requestUri);
+        log.info("{} : Path={}", httpMethod, requestUri);
         filterChain.doFilter(servletRequest, servletResponse);
     }
 }

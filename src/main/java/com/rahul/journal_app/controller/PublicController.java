@@ -2,6 +2,7 @@ package com.rahul.journal_app.controller;
 
 import com.rahul.journal_app.api.response.TwitterUser;
 import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.model.UserOtpDto;
 import com.rahul.journal_app.service.TwitterService;
 import com.rahul.journal_app.service.UserDetailsServiceImpl;
 import com.rahul.journal_app.service.UserService;
@@ -84,6 +85,9 @@ public class PublicController {
 
 
             UserDetails userDetails =userDetailsServiceImpl.loadUserByUsername(user.getUserName());
+            if(!userDetails.isEnabled()){
+                return new ResponseEntity<>("User is not verified", HttpStatus.BAD_REQUEST);
+            }
             String jwt=jwtUtil.generateToken(userDetails.getUsername());
             return new ResponseEntity<>(jwt, HttpStatus.OK);
 
@@ -102,6 +106,17 @@ public class PublicController {
             return new ResponseEntity<>("A email is sent to the user with temporary password", HttpStatus.OK);
         }
         return new ResponseEntity<>("Email not found", HttpStatus.BAD_REQUEST);
+    }
+
+
+    @PostMapping("/verify-user")
+    public ResponseEntity<?> verifyUser(@RequestBody UserOtpDto userOtpDto){
+        try {
+            ResponseEntity<?> response=userService.verifyUser(userOtpDto);
+            return response;
+        }catch (Exception e){
+            throw  new RuntimeException("Exception occurred during user verification");
+        }
     }
 
 }

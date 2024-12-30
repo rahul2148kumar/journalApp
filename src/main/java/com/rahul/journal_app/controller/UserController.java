@@ -2,6 +2,7 @@ package com.rahul.journal_app.controller;
 
 import com.rahul.journal_app.api.response.WeatherResponse;
 import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.model.UserDto;
 import com.rahul.journal_app.service.UserService;
 import com.rahul.journal_app.service.WeatherService;
 import org.slf4j.Logger;
@@ -34,14 +35,7 @@ public class UserController {
         logger.info("> User Update begin...");
         Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
         String username= authentication.getName();
-        logger.info("> Username: {}", username);
-        User userInfo=userService.findByUserName(username);
-        if(userInfo !=null){
-            userInfo.setUserName((user.getUserName()!=null && !user.getUserName().equals(""))? user.getUserName(): userInfo.getUserName());
-            userInfo.setPassword((user.getPassword()!=null && !user.getPassword().equals(""))? user.getPassword(): userInfo.getPassword());
-            userInfo.setCity((user.getCity()!=null && user.getCity().equals(""))? user.getCity(): userInfo.getCity());
-            userService.saveNewUser(userInfo);
-        }
+        userService.updateUser(username, user);
         logger.info("> Updated user Successfully");
         return new ResponseEntity<>("User Updated Successfully", HttpStatus.OK);
     }
@@ -80,5 +74,17 @@ public class UserController {
             return input; // Return as is for null or empty input
         }
         return input.substring(0, 1).toUpperCase() + input.substring(1);
+    }
+
+    @GetMapping("/user-details")
+    public ResponseEntity<?> getUserDetails(){
+        try{
+            Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+            String username= authentication.getName();
+            UserDto user = userService.getUserDetail(username);
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>("User Not Found: ", HttpStatus.OK);
+        }
     }
 }
