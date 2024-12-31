@@ -13,6 +13,13 @@ public interface Constants {
     public static String USER_NOT_FOUND = "User not found";
     public static final String EMAIL_SUCCESSFULLY_SENT = "Email successfully sent";
     public static final String USER_NOT_VERIFIED = "User is not verified";
+    public static final String USER_ALREADY_EXIST = "User already exist";
+    public static final String USER_UPDATED_SUCCESSFULLY = "User updated successfully";
+    public static final String USER_NOT_UPDATED = "User not updated";
+    public static final String ADMIN_ACCESS_GRANT_EXCEPTION = "Exception while granting admin access of a user";
+    public static final String ADMIN_ACCESS_REMOVE_EXCEPTION = "Exception while removing admin access of a user";
+    public static final String USER_DOES_NOT_HAVE_ADMIN_ACCESS = "User does not have admin access.";
+
 
 
 
@@ -27,4 +34,11 @@ public interface Constants {
     public static final String OTP_EXPIRED_EXCEPTION = "Otp expired exception";
     public static final String OTP_NULL_OR_EMPTY_EXCEPTION = "Otp null or empty exception";
     public static final String PASSWORD_RESET_SUCCESSFUL = "Password reset successful";
+    public static final String EXCEPTION_OCCURRED_DURING_USER_REGISTRATION = "Exception occurred during registration";
+    public static final String INVALID_PHONE_NUMBER = "Invalid phone number provided";
+    public static final String INVALID_DATE_OF_BIRTH = "Invalid D.O.B provided";
+    public static final String INVALID_GENDER = "Invalid gender provided";
+    public static final String INCORRECT_PASSWORD = "Incorrect password";
+    public static final String ADMIN_ACCESS_GRANTED = "Admin access provided to the user";
+    public static final String USER_ALREADY_HAS_ADMIN_ACCESS = "User has already admin access";
 }

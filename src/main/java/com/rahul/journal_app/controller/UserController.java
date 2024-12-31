@@ -1,6 +1,7 @@
 package com.rahul.journal_app.controller;
 
 import com.rahul.journal_app.api.response.WeatherResponse;
+import com.rahul.journal_app.constants.Constants;
 import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.model.UserDto;
 import com.rahul.journal_app.service.UserService;
@@ -31,13 +32,18 @@ public class UserController {
 
 
     @PutMapping()
-    public ResponseEntity<String> updateUser(@RequestBody User user){
+    public ResponseEntity<?> updateUser(@RequestBody User user){
         logger.info("> User Update begin...");
         Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
         String username= authentication.getName();
-        userService.updateUser(username, user);
-        logger.info("> Updated user Successfully");
-        return new ResponseEntity<>("User Updated Successfully", HttpStatus.OK);
+        try {
+            ResponseEntity<?> response=userService.updateUser(username, user);
+            return response;
+        }catch (Exception e){
+            logger.info("Exception during updating user information: {}", e.getMessage(), e);
+        }
+        return new ResponseEntity<>(Constants.USER_NOT_UPDATED, HttpStatus.BAD_REQUEST);
+
     }
 
     @DeleteMapping()

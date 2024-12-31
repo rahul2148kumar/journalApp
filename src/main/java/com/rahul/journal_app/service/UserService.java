@@ -4,6 +4,7 @@ import com.rahul.journal_app.constants.Constants;
 import com.rahul.journal_app.entity.JournalEntries;
 import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.entity.UserOtp;
+import com.rahul.journal_app.enums.Gender;
 import com.rahul.journal_app.model.UserDto;
 import com.rahul.journal_app.model.UserOtpDto;
 import com.rahul.journal_app.repository.JournalEntityRepository;
@@ -14,6 +15,7 @@ import com.rahul.journal_app.utils.Util;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Component
@@ -53,6 +56,9 @@ public class UserService {
 
     private static final SecureRandom random = new SecureRandom();
 
+    @Value("${otp.expiration_time}")
+    private long otpExpirationTimeInMinute;
+
 
 
 
@@ -68,12 +74,12 @@ public class UserService {
 
         UserOtp userOtp = new UserOtp();
         userOtp.setUserName(user.getUserName());
-        userOtp.setEmail(user.getEmail());
+        //userOtp.setEmail(user.getUserName());
         userOtp.setOtp(generateOtp());
         userOtp.setOtpCreatedDateTime(LocalDateTime.now());
 
         UserOtp userOtpSaved = userOtpRepository.save(userOtp);
-        sendOtpVerificationEmail(savedUser.getUserName(), userOtpSaved.getEmail(), userOtpSaved.getOtp());
+        sendOtpVerificationEmail(savedUser.getUserName(), userOtpSaved.getUserName(), userOtpSaved.getOtp());
         log.info("User Successfully Registered: {}", user.getUserName());
     }
 
@@ -98,16 +104,36 @@ public class UserService {
         return String.valueOf(otp);
     }
 
-    public void updateUser(String username, User user){
-        log.info("> Username: {}", username);
-        User savedUserInfo=findByUserName(username);
-        if(savedUserInfo !=null){
-            savedUserInfo.setUserName((user.getUserName()!=null && !user.getUserName().equals(""))? user.getUserName(): savedUserInfo.getUserName());
-            savedUserInfo.setPassword((user.getPassword()!=null && !user.getPassword().equals(""))? passwordEncoder.encode(user.getPassword()): savedUserInfo.getPassword());
-            savedUserInfo.setCity((user.getCity()!=null && !user.getCity().equals(""))? user.getCity(): savedUserInfo.getCity());
+
+    public ResponseEntity<?> updateUser(String username, User user){
+
+        if(user.getPhoneNo()!=null && !util.isValidPhoneNumber(user.getPhoneNo())){
+            return new ResponseEntity<>(Constants.INVALID_PHONE_NUMBER, HttpStatus.BAD_REQUEST);
+        }else if(user.getDateOfBirth()!=null && !util.isValidDateOfBirth(user.getDateOfBirth().toString(), "yyyy-MM-dd")){
+            return new ResponseEntity<>(Constants.INVALID_DATE_OF_BIRTH, HttpStatus.BAD_REQUEST);
+        }else if(!user.getGender().toUpperCase().equals(Gender.MALE.toString()) && !user.getGender().toUpperCase().equals(Gender.FEMALE.toString())){
+            return new ResponseEntity<>(Constants.INVALID_GENDER, HttpStatus.BAD_REQUEST);
         }
-        User savedUser=userRepository.save(savedUserInfo);
-        log.info("Register User Successfully: {}", user.getUserName());
+
+        try {
+            User savedUserInfo = findByUserName(username);
+            if (savedUserInfo != null) {
+
+                savedUserInfo.setFirstName((user.getFirstName() != null && !user.getFirstName().equals("")) ? user.getFirstName() : savedUserInfo.getFirstName());
+                savedUserInfo.setLastName((user.getLastName() != null && !user.getLastName().equals("")) ? user.getLastName() : savedUserInfo.getLastName());
+                savedUserInfo.setCity((user.getCity() != null && !user.getCity().equals("")) ? user.getCity() : savedUserInfo.getCity());
+                savedUserInfo.setCountry(user.getCountry()!=null? user.getCountry():savedUserInfo.getCountry());
+                savedUserInfo.setPhoneNo(user.getPhoneNo()!=null? user.getPhoneNo():savedUserInfo.getPhoneNo());
+                savedUserInfo.setPinCode(user.getPinCode()!=null? user.getPinCode():savedUserInfo.getPinCode());
+                savedUserInfo.setGender(user.getGender()!=null? user.getGender().toUpperCase():savedUserInfo.getGender());
+                savedUserInfo.setDateOfBirth(user.getDateOfBirth()!=null? user.getDateOfBirth():savedUserInfo.getDateOfBirth());
+            }
+            User savedUser = userRepository.save(savedUserInfo);
+            return new ResponseEntity<>(savedUser, HttpStatus.OK);
+        }catch (Exception e){
+            log.info("Error while updating user info in database: {}", e.getMessage(), e);
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public User saveUserEntry(User user){
@@ -129,8 +155,14 @@ public class UserService {
         UserDto userDto = UserDto.builder()
                 .id(user.getId())
                 .userName(user.getUserName())
-                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phoneNo(user.getPhoneNo())
+                .gender(user.getGender())
+                .dateOfBirth(user.getDateOfBirth())
+                .country(user.getCountry())
                 .city(user.getCity())
+                .pinCode(user.getPinCode())
                 .journalEntities(user.getJournalEntities())
                 .roles(user.getRoles())
                 .verified(user.isVerified())
@@ -187,30 +219,27 @@ public class UserService {
     }
 
     public User findUserByEmail(String email) {
-        Optional<User> optionalUser=userRepository.findByEmail(email);
-        if(optionalUser.isPresent()){
-            return optionalUser.get();
+        User user=userRepository.findByUserName(email);
+        if(user!=null){
+            return user;
         }
         return null;
     }
 
     @Transactional
     public void sendForgetPasswordEmailOtp(User user) {
-        UserOtp userOtp = userOtpRepository.findByUserName(user.getUserName());
+        Optional<UserOtp> optionalUserOtp = userOtpRepository.findByUserName(user.getUserName());
+        if(!optionalUserOtp.isPresent()){
+            throw new RuntimeException("User not found");
+        }
+        UserOtp userOtp = optionalUserOtp.get();
         userOtp.setOtp(generateOtp());
         userOtp.setOtpCreatedDateTime(LocalDateTime.now());
         userOtpRepository.save(userOtp);
 
         String subject = "Password Recovery Request";
-        String body = "Dear " + user.getUserName() + ",<br><br>" +
-                "We received a request to reset your password. Here is your One-Time Password (OTP):<br><br>" +
-                "OTP: <b>" + userOtp.getOtp() + "</b><br><br>" +
-                "Please use this OTP to reset your password. It is valid for 5 minutes.<br><br>" +
-                "For your security, please do not share this OTP with anyone.<br><br>" +
-                "If you did not request a password reset, please contact our support team immediately.<br><br>" +
-                "Best regards,<br>" +
-                "The Journal Application Team";
-        emailService.sendMail(user.getEmail(), subject, body);
+        String body = util.getBodyForResetPasswordSendOtpMail(user.getUserName(), userOtp.getOtp());
+        emailService.sendMail(user.getUserName(), subject, body);
     }
 
     public static String generatePassword() {
@@ -232,35 +261,43 @@ public class UserService {
             UserDto userDtoResponse=convertUserToUserDto(user);
             return userDtoResponse;
         }catch (Exception e){
+            log.info("Some Error get during extracting user details:  {}", e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
+
     }
 
     @Transactional
     public ResponseEntity<?> verifyUser(UserOtpDto userOtpDto) {
 
         log.info("user verification ");
-        if(!util.isValidEmail(userOtpDto.getEmail())){
-            throw  new RuntimeException(Constants.INVALID_EMAIL_FORMAT);
+        if(!util.isValidEmail(userOtpDto.getUserName())){
+            return new ResponseEntity<>(Constants.INVALID_EMAIL_FORMAT, HttpStatus.BAD_REQUEST);
         }
-        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByEmail(userOtpDto.getEmail());
+        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByUserName(userOtpDto.getUserName());
         if(optionalUserOtp.isPresent()){
+
             UserOtp savedUserOtp = optionalUserOtp.get();
-            if(userOtpDto.getOtp()==null || userOtpDto.getOtp().equals("")){
-                throw new RuntimeException("OTP can not be null or empty");
-            }else if(savedUserOtp.getOtp()==null || savedUserOtp.getOtp().equals("")){
-                throw new RuntimeException("Invalid OTP");
-            }else if(!userOtpDto.getOtp().equals(savedUserOtp.getOtp())){
-                throw new RuntimeException("Invalid OTP");
+
+            if (userOtpDto.getOtp() == null || userOtpDto.getOtp().equals("")) {
+                log.info("OTP can not be null or empty");
+                return new ResponseEntity<>(Constants.OTP_NULL_OR_EMPTY_EXCEPTION, HttpStatus.BAD_REQUEST);
+            } else if (savedUserOtp.getOtp() == null || savedUserOtp.getOtp().equals("")) {
+                log.info("Invalid OTP");
+                return new ResponseEntity<>(Constants.INVALID_OTP_EXCEPTION, HttpStatus.BAD_REQUEST);
+            } else if (!userOtpDto.getOtp().equals(savedUserOtp.getOtp())) {
+                log.info("Invalid OTP");
+                return new ResponseEntity<>(Constants.INVALID_OTP_EXCEPTION, HttpStatus.BAD_REQUEST);
             } else if (isOtpExpired(savedUserOtp.getOtpCreatedDateTime())) {
-                throw new RuntimeException("OTP Expired");
+                log.info("OTP Expired");
+                return new ResponseEntity<>(Constants.OTP_EXPIRED_EXCEPTION, HttpStatus.BAD_REQUEST);
             }
 
-            User user=findUserByEmail(userOtpDto.getEmail());
+            User user=findUserByEmail(userOtpDto.getUserName());
             user.setVerified(true);
             User userVerified=userRepository.save(user);
 
-            savedUserOtp.setOtp(null);
+            savedUserOtp.setOtp("");
             UserOtp userOtpUpdated=userOtpRepository.save(savedUserOtp);
             return new ResponseEntity<>(Constants.USER_VERIFICATION_SUCCESSFUL, HttpStatus.OK);
         }
@@ -268,7 +305,7 @@ public class UserService {
     }
 
     private boolean isValidOtp(String email, String otp){
-        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByEmail(email);
+        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByUserName(email);
         if(optionalUserOtp.isPresent()) {
             UserOtp savedUserOtp = optionalUserOtp.get();
             if (otp == null || otp.equals("")) {
@@ -283,22 +320,29 @@ public class UserService {
     }
 
     private boolean isOtpExpired(LocalDateTime otpCreatedDateTime) {
-        LocalDateTime validDateTimeUntil=otpCreatedDateTime.plusMinutes(5l);
+        LocalDateTime validDateTimeUntil=otpCreatedDateTime.plusMinutes(otpExpirationTimeInMinute);
         return LocalDateTime.now().isAfter(validDateTimeUntil);
     }
 
     @Transactional
     public ResponseEntity<?> resetPassword(PasswordRestRequest passwordRestRequest) {
-        Optional<User> optionalUser=userRepository.findByEmail(passwordRestRequest.getEmail());
-        if(!optionalUser.isPresent()){
-            throw new RuntimeException(Constants.USER_NOT_FOUND);
-        } else if(!isValidOtp(passwordRestRequest.getEmail(), passwordRestRequest.getOtp())){
-            throw new RuntimeException(Constants.INVALID_OTP_EXCEPTION);
+        User user=userRepository.findByUserName(passwordRestRequest.getUserName());
+        if(user==null){
+            log.info("User not found");
+            return new ResponseEntity<>(Constants.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+        } else if(!isValidOtp(passwordRestRequest.getUserName(), passwordRestRequest.getOtp())){
+            log.info("Invalid OTP");
+            return new ResponseEntity<>(Constants.INVALID_OTP_EXCEPTION, HttpStatus.BAD_REQUEST);
         }
-        User user = optionalUser.get();
-        UserOtp userOtp=userOtpRepository.findByUserName(user.getUserName());
+
+        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByUserName(user.getUserName());
+        if(!optionalUserOtp.isPresent()){
+            return new ResponseEntity<>(Constants.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+        }
+
+        UserOtp userOtp = optionalUserOtp.get();
         if(isOtpExpired(userOtp.getOtpCreatedDateTime())){
-            throw new RuntimeException(Constants.OTP_EXPIRED_EXCEPTION);
+            return new ResponseEntity<>(Constants.OTP_EXPIRED_EXCEPTION, HttpStatus.BAD_REQUEST);
         }
         // otp validated
         try {
@@ -307,7 +351,7 @@ public class UserService {
             user.setVerified(true);
             User savedUser = userRepository.save(user);
 
-            userOtp.setOtp(null);
+            userOtp.setOtp("");
             userOtp.setOtpCreatedDateTime(LocalDateTime.now());
             UserOtp savedUserOtp = userOtpRepository.save(userOtp);
         }catch (Exception e){
@@ -315,5 +359,27 @@ public class UserService {
             throw new RuntimeException(e);
         }
         return new ResponseEntity<>(Constants.PASSWORD_RESET_SUCCESSFUL, HttpStatus.OK);
+    }
+
+    public ResponseEntity<?> updateRoleOfUser(User user, boolean adminAccess) {
+        try {
+            List<String> roleOfUser = user.getRoles();
+            log.info("We are providing admin access to the user: {}", adminAccess);
+            if(adminAccess) { // grant admin access
+                roleOfUser.add("ADMIN");
+            }else{ // remove admin access
+                List<String> roleWithoutADMIN=roleOfUser.stream()
+                        .filter(r->!r.toUpperCase().contains("ADMIN"))
+                        .collect(Collectors.toList());
+                roleOfUser=roleWithoutADMIN;
+            }
+            user.setRoles(roleOfUser);
+            User saveUser=userRepository.save(user);
+            return new ResponseEntity<>(saveUser, HttpStatus.OK);
+        }catch (Exception e){
+            log.info("Error while saving in db {}",e.getMessage());
+            throw new RuntimeException(e);
+        }
+
     }
 }
