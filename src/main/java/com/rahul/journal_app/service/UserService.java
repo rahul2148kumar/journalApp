@@ -1,5 +1,6 @@
 package com.rahul.journal_app.service;
 
+import com.rahul.journal_app.constants.Constants;
 import com.rahul.journal_app.entity.JournalEntries;
 import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.entity.UserOtp;
@@ -8,11 +9,11 @@ import com.rahul.journal_app.model.UserOtpDto;
 import com.rahul.journal_app.repository.JournalEntityRepository;
 import com.rahul.journal_app.repository.UserOtpRepository;
 import com.rahul.journal_app.repository.UserRepository;
-import com.rahul.journal_app.utils.UserUtil;
+import com.rahul.journal_app.request.PasswordRestRequest;
+import com.rahul.journal_app.utils.Util;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,7 +45,7 @@ public class UserService {
     private UserOtpRepository userOtpRepository;
 
     @Autowired
-    private UserUtil userUtil;
+    private Util util;
 
 
     @Autowired
@@ -80,7 +81,7 @@ public class UserService {
 
         String subject = "Your OTP for Account Verification";
 
-        String body = "Dear "+userUtil.capitalizeFirstChar(userName)+",\n\n" +
+        String body = "Dear "+util.capitalizeFirstChar(userName)+",\n\n" +
                 "Thank you for choosing our services! To verify your account, please use the following One-Time Password (OTP):\n\n" +
                 "**Your OTP: " + otp + "**\n\n" +
                 "This OTP is valid for the next 5 minutes. Please use it to complete your registration or login process.\n\n" +
@@ -193,19 +194,21 @@ public class UserService {
         return null;
     }
 
-    public void sendForgetEmailPassword(User user) {
-        final String password=generatePassword();
-        user.setPassword(passwordEncoder.encode(password));
-        userRepository.save(user);
+    @Transactional
+    public void sendForgetPasswordEmailOtp(User user) {
+        UserOtp userOtp = userOtpRepository.findByUserName(user.getUserName());
+        userOtp.setOtp(generateOtp());
+        userOtp.setOtpCreatedDateTime(LocalDateTime.now());
+        userOtpRepository.save(userOtp);
+
         String subject = "Password Recovery Request";
-        String body = "Dear " + user.getUserName() + ",\n\n" +
-                "We received a request to reset your password. Here is your temporary password:\n\n" +
-                "User Name: " + user.getUserName() + "\n" +
-                "Temporary Password: " + password + "\n\n" +
-                "Please log in using this password and update it immediately to secure your account.\n" +
-                "For your security, please do not share this password with anyone.\n\n" +
-                "If you did not request a password reset, please contact our support team.\n\n" +
-                "Best regards,\n" +
+        String body = "Dear " + user.getUserName() + ",<br><br>" +
+                "We received a request to reset your password. Here is your One-Time Password (OTP):<br><br>" +
+                "OTP: <b>" + userOtp.getOtp() + "</b><br><br>" +
+                "Please use this OTP to reset your password. It is valid for 5 minutes.<br><br>" +
+                "For your security, please do not share this OTP with anyone.<br><br>" +
+                "If you did not request a password reset, please contact our support team immediately.<br><br>" +
+                "Best regards,<br>" +
                 "The Journal Application Team";
         emailService.sendMail(user.getEmail(), subject, body);
     }
@@ -235,6 +238,11 @@ public class UserService {
 
     @Transactional
     public ResponseEntity<?> verifyUser(UserOtpDto userOtpDto) {
+
+        log.info("user verification ");
+        if(!util.isValidEmail(userOtpDto.getEmail())){
+            throw  new RuntimeException(Constants.INVALID_EMAIL_FORMAT);
+        }
         Optional<UserOtp> optionalUserOtp=userOtpRepository.findByEmail(userOtpDto.getEmail());
         if(optionalUserOtp.isPresent()){
             UserOtp savedUserOtp = optionalUserOtp.get();
@@ -254,13 +262,58 @@ public class UserService {
 
             savedUserOtp.setOtp(null);
             UserOtp userOtpUpdated=userOtpRepository.save(savedUserOtp);
-            return new ResponseEntity<>("User verified", HttpStatus.OK);
+            return new ResponseEntity<>(Constants.USER_VERIFICATION_SUCCESSFUL, HttpStatus.OK);
         }
-        return new ResponseEntity<>("User Not Found", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(Constants.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+    }
+
+    private boolean isValidOtp(String email, String otp){
+        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByEmail(email);
+        if(optionalUserOtp.isPresent()) {
+            UserOtp savedUserOtp = optionalUserOtp.get();
+            if (otp == null || otp.equals("")) {
+                throw new RuntimeException(Constants.OTP_NULL_OR_EMPTY_EXCEPTION);
+            }else if (savedUserOtp.getOtp() == null || savedUserOtp.getOtp().equals("")) {
+                throw new RuntimeException("Invalid OTP");
+            }
+            if(otp.equals(savedUserOtp.getOtp())) return true;
+            else return false;
+        }
+        return false;
     }
 
     private boolean isOtpExpired(LocalDateTime otpCreatedDateTime) {
         LocalDateTime validDateTimeUntil=otpCreatedDateTime.plusMinutes(5l);
         return LocalDateTime.now().isAfter(validDateTimeUntil);
+    }
+
+    @Transactional
+    public ResponseEntity<?> resetPassword(PasswordRestRequest passwordRestRequest) {
+        Optional<User> optionalUser=userRepository.findByEmail(passwordRestRequest.getEmail());
+        if(!optionalUser.isPresent()){
+            throw new RuntimeException(Constants.USER_NOT_FOUND);
+        } else if(!isValidOtp(passwordRestRequest.getEmail(), passwordRestRequest.getOtp())){
+            throw new RuntimeException(Constants.INVALID_OTP_EXCEPTION);
+        }
+        User user = optionalUser.get();
+        UserOtp userOtp=userOtpRepository.findByUserName(user.getUserName());
+        if(isOtpExpired(userOtp.getOtpCreatedDateTime())){
+            throw new RuntimeException(Constants.OTP_EXPIRED_EXCEPTION);
+        }
+        // otp validated
+        try {
+            user.setPassword(passwordEncoder.encode(passwordRestRequest.getUpdatedPassword()));
+            user.setUserUpdatedDate(LocalDateTime.now());
+            user.setVerified(true);
+            User savedUser = userRepository.save(user);
+
+            userOtp.setOtp(null);
+            userOtp.setOtpCreatedDateTime(LocalDateTime.now());
+            UserOtp savedUserOtp = userOtpRepository.save(userOtp);
+        }catch (Exception e){
+            log.error("Error: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+        return new ResponseEntity<>(Constants.PASSWORD_RESET_SUCCESSFUL, HttpStatus.OK);
     }
 }

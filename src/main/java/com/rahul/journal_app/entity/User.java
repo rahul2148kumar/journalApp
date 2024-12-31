@@ -33,6 +33,7 @@ public class User {
     @Indexed(unique = true)
     @NotBlank(message = "User cannot be blank")
     private String userName;
+    @Indexed(unique = true)
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Invalid email format")
     private String email;

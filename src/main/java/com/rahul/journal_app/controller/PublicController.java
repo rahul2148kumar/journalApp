@@ -1,15 +1,16 @@
 package com.rahul.journal_app.controller;
 
 import com.rahul.journal_app.api.response.TwitterUser;
+import com.rahul.journal_app.constants.Constants;
 import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.model.UserOtpDto;
+import com.rahul.journal_app.request.PasswordRestRequest;
 import com.rahul.journal_app.service.TwitterService;
 import com.rahul.journal_app.service.UserDetailsServiceImpl;
 import com.rahul.journal_app.service.UserService;
 import com.rahul.journal_app.utils.JwtUtil;
+import com.rahul.journal_app.utils.Util;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,9 @@ public class PublicController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private Util util;
 
     private final UserService userService;
     private final TwitterService twitterService;
@@ -62,10 +66,13 @@ public class PublicController {
 
     // create user
     @PostMapping("/signup")
-    public String signup(@RequestBody User user){
+    public ResponseEntity<?> signup(@RequestBody User user){
         user.setRoles(Arrays.asList("USER"));
+        if(!util.isValidEmail(user.getEmail())){
+            return new ResponseEntity<>(Constants.INVALID_EMAIL_FORMAT, HttpStatus.BAD_REQUEST);
+        }
         userService.saveNewUser(user);
-        return "User Created Successfully";
+        return new ResponseEntity<>(Constants.USER_REGISTRATION_SUCCESSFUL, HttpStatus.OK);
     }
 
     // create jwt token
@@ -86,37 +93,51 @@ public class PublicController {
 
             UserDetails userDetails =userDetailsServiceImpl.loadUserByUsername(user.getUserName());
             if(!userDetails.isEnabled()){
-                return new ResponseEntity<>("User is not verified", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(Constants.USER_NOT_VERIFIED, HttpStatus.BAD_REQUEST);
             }
             String jwt=jwtUtil.generateToken(userDetails.getUsername());
             return new ResponseEntity<>(jwt, HttpStatus.OK);
 
         }catch (Exception e){
             log.error("Exception occurred while creatingAuthenticationToken: {}", e.getMessage());
-            return new ResponseEntity<>("Incorrect username or password", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Constants.INCORRECT_USERNAME_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/send-forget-password-email")
-    public ResponseEntity<String> getForgetPasswordEmail(@RequestParam("email") String email){
-
+    @GetMapping("/send-forget-password-otp")
+    public ResponseEntity<String> getForgetPasswordEmailOtp(@RequestParam("email") String email){
+        if(!util.isValidEmail(email)){
+            return new ResponseEntity<>(Constants.INVALID_EMAIL_FORMAT, HttpStatus.BAD_REQUEST);
+        }
         User user=userService.findUserByEmail(email);
         if(user !=null){
-            userService.sendForgetEmailPassword(user);
-            return new ResponseEntity<>("A email is sent to the user with temporary password", HttpStatus.OK);
+            userService.sendForgetPasswordEmailOtp(user);
+            return new ResponseEntity<>(Constants.EMAIL_SUCCESSFULLY_SENT, HttpStatus.OK);
         }
-        return new ResponseEntity<>("Email not found", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(Constants.EMAIL_NOT_FOUND, HttpStatus.BAD_REQUEST);
     }
 
 
     @PostMapping("/verify-user")
     public ResponseEntity<?> verifyUser(@RequestBody UserOtpDto userOtpDto){
+        log.info("sd");
         try {
             ResponseEntity<?> response=userService.verifyUser(userOtpDto);
             return response;
         }catch (Exception e){
-            throw  new RuntimeException("Exception occurred during user verification");
+            throw  new RuntimeException(Constants.EXCEPTION_OCCURRED_DURING_USER_VERIFICATION);
         }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordRestRequest passwordRestRequest){
+        ResponseEntity<?> response=null;
+        try{
+            response = userService.resetPassword(passwordRestRequest);
+        }catch (Exception e){
+            throw new RuntimeException(Constants.PASSWORD_RESET_EXCEPTION_OCCURRED);
+        }
+        return response;
     }
 
 }

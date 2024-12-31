@@ -2,13 +2,12 @@ package com.rahul.journal_app.service;
 
 import com.rahul.journal_app.api.response.WeatherResponse;
 import com.rahul.journal_app.cache.AppCache;
-import com.rahul.journal_app.constants.Placeholder;
+import com.rahul.journal_app.constants.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -40,12 +39,12 @@ public class WeatherService {
             return weatherResponse;
         }
         log.info("Fetching weather data for city: {}", city);
-        String finalUrl = baseUrl.replace(Placeholder.CITY, city).replace(Placeholder.WEATHER_API_KEY, apiKey);
+        String finalUrl = baseUrl.replace(Constants.CITY, city).replace(Constants.WEATHER_API_KEY, apiKey);
         log.debug("Constructed URL: {}", finalUrl);
 
-        /*String url=appCache.propertiesMap.get(Placeholder.WEATHER_API_URL);
-        String apiKey=appCache.propertiesMap.get(Placeholder.WEATHER_API_KEY);
-        String finalUrl = url.replace(Placeholder.CITY, city).replace(Placeholder.WEATHER_API_KEY, apiKey);*/
+        /*String url=appCache.propertiesMap.get(Constants.WEATHER_API_URL);
+        String apiKey=appCache.propertiesMap.get(Constants.WEATHER_API_KEY);
+        String finalUrl = url.replace(Constants.CITY, city).replace(Constants.WEATHER_API_KEY, apiKey);*/
 
         try {
             ResponseEntity<WeatherResponse> response = restTemplate.exchange(finalUrl, HttpMethod.GET, null, WeatherResponse.class);
