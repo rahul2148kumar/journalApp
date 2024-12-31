@@ -1,14 +1,17 @@
 package com.rahul.journal_app.controller;
 
 import com.rahul.journal_app.api.response.TwitterUser;
+import com.rahul.journal_app.constants.Constants;
 import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.model.UserOtpDto;
+import com.rahul.journal_app.repository.UserRepository;
+import com.rahul.journal_app.request.PasswordRestRequest;
 import com.rahul.journal_app.service.TwitterService;
 import com.rahul.journal_app.service.UserDetailsServiceImpl;
 import com.rahul.journal_app.service.UserService;
 import com.rahul.journal_app.utils.JwtUtil;
+import com.rahul.journal_app.utils.Util;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +37,12 @@ public class PublicController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private Util util;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private final UserService userService;
     private final TwitterService twitterService;
@@ -61,10 +70,22 @@ public class PublicController {
 
     // create user
     @PostMapping("/signup")
-    public String signup(@RequestBody User user){
+    public ResponseEntity<?> signup(@RequestBody User user){
         user.setRoles(Arrays.asList("USER"));
-        userService.saveNewUser(user);
-        return "User Created Successfully";
+        if(!util.isValidEmail(user.getUserName())){
+            return new ResponseEntity<>(Constants.INVALID_EMAIL_FORMAT, HttpStatus.BAD_REQUEST);
+        }
+        User dbuser=userRepository.findByUserName(user.getUserName());
+        if(dbuser!=null){
+            return new ResponseEntity<>(Constants.USER_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
+        }
+        try {
+            userService.saveNewUser(user);
+        }catch (Exception e){
+            log.info("Exception: {}",e.getMessage());
+            return new ResponseEntity<>(Constants.EXCEPTION_OCCURRED_DURING_USER_REGISTRATION, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(Constants.USER_REGISTRATION_SUCCESSFUL, HttpStatus.OK);
     }
 
     // create jwt token
@@ -73,6 +94,11 @@ public class PublicController {
         log.info("Start login");
         if(user.getUserName() !=null && !user.getUserName().equals("")){
             user.setUserName(user.getUserName().toLowerCase());
+        }
+
+        User dbUser=userRepository.findByUserName(user.getUserName());
+        if(dbUser==null){
+            return new ResponseEntity<>(Constants.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -84,24 +110,52 @@ public class PublicController {
 
 
             UserDetails userDetails =userDetailsServiceImpl.loadUserByUsername(user.getUserName());
+            if(!userDetails.isEnabled()){
+                return new ResponseEntity<>(Constants.USER_NOT_VERIFIED, HttpStatus.BAD_REQUEST);
+            }
             String jwt=jwtUtil.generateToken(userDetails.getUsername());
             return new ResponseEntity<>(jwt, HttpStatus.OK);
 
         }catch (Exception e){
             log.error("Exception occurred while creatingAuthenticationToken: {}", e.getMessage());
-            return new ResponseEntity<>("Incorrect username or password", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Constants.INCORRECT_PASSWORD, HttpStatus.BAD_REQUEST);
         }
     }
 
-    @GetMapping("/send-forget-password-email")
-    public ResponseEntity<String> getForgetPasswordEmail(@RequestParam("email") String email){
-
+    @GetMapping("/send-forget-password-otp")
+    public ResponseEntity<String> getForgetPasswordEmailOtp(@RequestParam("email") String email){
+        if(!util.isValidEmail(email)){
+            return new ResponseEntity<>(Constants.INVALID_EMAIL_FORMAT, HttpStatus.BAD_REQUEST);
+        }
         User user=userService.findUserByEmail(email);
         if(user !=null){
-            userService.sendForgetEmailPassword(user);
-            return new ResponseEntity<>("A email is sent to the user with temporary password", HttpStatus.OK);
+            userService.sendForgetPasswordEmailOtp(user);
+            return new ResponseEntity<>(Constants.EMAIL_SUCCESSFULLY_SENT, HttpStatus.OK);
         }
-        return new ResponseEntity<>("Email not found", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(Constants.EMAIL_NOT_FOUND, HttpStatus.BAD_REQUEST);
+    }
+
+
+    @PostMapping("/verify-user")
+    public ResponseEntity<?> verifyUser(@RequestBody UserOtpDto userOtpDto){
+        log.info("sd");
+        try {
+            ResponseEntity<?> response=userService.verifyUser(userOtpDto);
+            return response;
+        }catch (Exception e){
+            return new ResponseEntity<>(Constants.EXCEPTION_OCCURRED_DURING_USER_VERIFICATION, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordRestRequest passwordRestRequest){
+        ResponseEntity<?> response=null;
+        try{
+            response = userService.resetPassword(passwordRestRequest);
+        }catch (Exception e){
+            throw new RuntimeException(Constants.PASSWORD_RESET_EXCEPTION_OCCURRED);
+        }
+        return response;
     }
 
 }

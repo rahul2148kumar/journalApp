@@ -1,7 +1,9 @@
 package com.rahul.journal_app.controller;
 
 import com.rahul.journal_app.api.response.WeatherResponse;
+import com.rahul.journal_app.constants.Constants;
 import com.rahul.journal_app.entity.User;
+import com.rahul.journal_app.model.UserDto;
 import com.rahul.journal_app.service.UserService;
 import com.rahul.journal_app.service.WeatherService;
 import org.slf4j.Logger;
@@ -30,19 +32,18 @@ public class UserController {
 
 
     @PutMapping()
-    public ResponseEntity<String> updateUser(@RequestBody User user){
+    public ResponseEntity<?> updateUser(@RequestBody User user){
         logger.info("> User Update begin...");
         Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
         String username= authentication.getName();
-        logger.info("> Username: {}", username);
-        User userInfo=userService.findByUserName(username);
-        if(userInfo !=null){
-            userInfo.setUserName(user.getUserName());
-            userInfo.setPassword(user.getPassword());
-            userService.saveNewUser(userInfo);
+        try {
+            ResponseEntity<?> response=userService.updateUser(username, user);
+            return response;
+        }catch (Exception e){
+            logger.info("Exception during updating user information: {}", e.getMessage(), e);
         }
-        logger.info("> Updated user Successfully");
-        return new ResponseEntity<>("User Updated Successfully", HttpStatus.OK);
+        return new ResponseEntity<>(Constants.USER_NOT_UPDATED, HttpStatus.BAD_REQUEST);
+
     }
 
     @DeleteMapping()
@@ -79,5 +80,17 @@ public class UserController {
             return input; // Return as is for null or empty input
         }
         return input.substring(0, 1).toUpperCase() + input.substring(1);
+    }
+
+    @GetMapping("/user-details")
+    public ResponseEntity<?> getUserDetails(){
+        try{
+            Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+            String username= authentication.getName();
+            UserDto user = userService.getUserDetail(username);
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>("User Not Found: ", HttpStatus.OK);
+        }
     }
 }

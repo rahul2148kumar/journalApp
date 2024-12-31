@@ -24,6 +24,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     .username(user.getUserName())
                     .password(user.getPassword())
                     .roles(user.getRoles().toArray(new String[0]))
+                    .disabled(!user.isVerified())
                     .build();
             return userDetails;
         }
