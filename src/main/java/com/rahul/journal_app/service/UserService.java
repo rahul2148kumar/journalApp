@@ -84,7 +84,7 @@ public class UserService {
 
     private void sendOtpVerificationEmail(String firstName, String userName, String otp) {
 
-        String subject = "Your OTP for Account Verification";
+        String subject = "Verify Your Email Address for JournalApp Registration";
         String body = util.getBodyForOtpVerificationMail(firstName, userName, otp);
         emailService.sendMail(userName, subject, body);
     }
@@ -268,19 +268,23 @@ public class UserService {
         if(optionalUserOtp.isPresent()){
 
             UserOtp savedUserOtp = optionalUserOtp.get();
-
+            User savedUser=userRepository.findByUserName(userName);
+            if(savedUser.isVerified()){
+                log.info("User already verified");
+                return new ResponseEntity<>(Constants.USER_ALREADY_VERIFIED, HttpStatus.BAD_REQUEST);
+            }
             if (otp == null || otp.equals("")) {
                 log.info("OTP can not be null or empty");
                 return new ResponseEntity<>(Constants.OTP_NULL_OR_EMPTY_EXCEPTION, HttpStatus.BAD_REQUEST);
             } else if (savedUserOtp.getOtp() == null || savedUserOtp.getOtp().equals("")) {
                 log.info("Invalid OTP");
-                return new ResponseEntity<>(Constants.INVALID_OTP_EXCEPTION, HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(Constants.INVALID_LINK, HttpStatus.BAD_REQUEST);
             } else if (!otp.equals(savedUserOtp.getOtp())) {
-                log.info("Invalid OTP");
-                return new ResponseEntity<>(Constants.INVALID_OTP_EXCEPTION, HttpStatus.BAD_REQUEST);
+                log.info("The link you provided is invalid");
+                return new ResponseEntity<>(Constants.INVALID_LINK, HttpStatus.BAD_REQUEST);
             } else if (isOtpExpired(savedUserOtp.getOtpCreatedDateTime())) {
-                log.info("OTP Expired");
-                return new ResponseEntity<>(Constants.OTP_EXPIRED, HttpStatus.BAD_REQUEST);
+                log.info("The verification link has expired");
+                return new ResponseEntity<>(Constants.LINK_EXPIRED, HttpStatus.BAD_REQUEST);
             }
 
             User user=findUserByEmail(userName);
