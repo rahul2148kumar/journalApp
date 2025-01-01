@@ -6,7 +6,7 @@ public interface Constants {
     String CITY="city";
     String WEATHER_API_URL="weatherApiUrl";
     public static String INVALID_EMAIL_FORMAT="Invalid email format";
-    public static String USER_REGISTRATION_SUCCESSFUL = "User registration successful";
+    public static String USER_REGISTRATION_SUCCESSFUL = "Registration successful! Please verify your email to complete the process.";
     public static String INCORRECT_USERNAME_OR_PASSWORD="Incorrect username or password";
     public static String EMAIL_NOT_FOUND ="Email not found";
     public static String USER_VERIFICATION_SUCCESSFUL ="User verification successful";

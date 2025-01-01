@@ -227,8 +227,8 @@ public class UserService {
         userOtp.setOtpCreatedDateTime(LocalDateTime.now());
         userOtpRepository.save(userOtp);
 
-        String subject = "Password Recovery Request";
-        String body = util.getBodyForResetPasswordSendOtpMail(user.getUserName(), userOtp.getOtp());
+        String subject = "OTP to Reset Your Account Password";
+        String body = util.getBodyForResetPasswordSendOtpMail(user.getFirstName(), user.getUserName(), userOtp.getOtp());
         emailService.sendMail(user.getUserName(), subject, body);
     }
 
