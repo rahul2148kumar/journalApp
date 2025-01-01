@@ -31,7 +31,7 @@ public interface Constants {
 
     public static final String PASSWORD_RESET_EXCEPTION_OCCURRED = "Exception occurred during password reset";
     public static final String INVALID_OTP_EXCEPTION = "Invalid otp exception";
-    public static final String OTP_EXPIRED_EXCEPTION = "Otp expired exception";
+    public static final String OTP_EXPIRED = "Otp expired";
     public static final String OTP_NULL_OR_EMPTY_EXCEPTION = "Otp null or empty exception";
     public static final String PASSWORD_RESET_SUCCESSFUL = "Password reset successful";
     public static final String EXCEPTION_OCCURRED_DURING_USER_REGISTRATION = "Exception occurred during registration";

@@ -71,3 +71,6 @@ jwt:
 
 otp:
     expiration_time: ${OTP_EXPIRY_TIME_IN_MINUTE}
+
+url:
+    baseUrl: ${APPLICATION_BASE_URL}

@@ -6,7 +6,6 @@ import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.entity.UserOtp;
 import com.rahul.journal_app.enums.Gender;
 import com.rahul.journal_app.model.UserDto;
-import com.rahul.journal_app.model.UserOtpDto;
 import com.rahul.journal_app.repository.JournalEntityRepository;
 import com.rahul.journal_app.repository.UserOtpRepository;
 import com.rahul.journal_app.repository.UserRepository;
@@ -79,24 +78,15 @@ public class UserService {
         userOtp.setOtpCreatedDateTime(LocalDateTime.now());
 
         UserOtp userOtpSaved = userOtpRepository.save(userOtp);
-        sendOtpVerificationEmail(savedUser.getUserName(), userOtpSaved.getUserName(), userOtpSaved.getOtp());
+        sendOtpVerificationEmail(savedUser.getFirstName(), userOtpSaved.getUserName(), userOtpSaved.getOtp());
         log.info("User Successfully Registered: {}", user.getUserName());
     }
 
-    private void sendOtpVerificationEmail(String userName, String ToEmail, String otp) {
+    private void sendOtpVerificationEmail(String firstName, String userName, String otp) {
 
         String subject = "Your OTP for Account Verification";
-
-        String body = "Dear "+util.capitalizeFirstChar(userName)+",\n\n" +
-                "Thank you for choosing our services! To verify your account, please use the following One-Time Password (OTP):\n\n" +
-                "**Your OTP: " + otp + "**\n\n" +
-                "This OTP is valid for the next 5 minutes. Please use it to complete your registration or login process.\n\n" +
-                "If you did not request this OTP, please disregard this email or contact our support team immediately.\n\n" +
-                "Best regards,\n" +
-                "The [Your Company Name] Team\n\n" +
-                "---\n" +
-                "This is an automated message, please do not reply.";
-        emailService.sendMail(ToEmail, subject, body);
+        String body = util.getBodyForOtpVerificationMail(firstName, userName, otp);
+        emailService.sendMail(userName, subject, body);
     }
 
     private String generateOtp() {
@@ -268,32 +258,32 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseEntity<?> verifyUser(UserOtpDto userOtpDto) {
+    public ResponseEntity<?> verifyUser(String userName, String otp) {
 
         log.info("user verification ");
-        if(!util.isValidEmail(userOtpDto.getUserName())){
+        if(!util.isValidEmail(userName)){
             return new ResponseEntity<>(Constants.INVALID_EMAIL_FORMAT, HttpStatus.BAD_REQUEST);
         }
-        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByUserName(userOtpDto.getUserName());
+        Optional<UserOtp> optionalUserOtp=userOtpRepository.findByUserName(userName);
         if(optionalUserOtp.isPresent()){
 
             UserOtp savedUserOtp = optionalUserOtp.get();
 
-            if (userOtpDto.getOtp() == null || userOtpDto.getOtp().equals("")) {
+            if (otp == null || otp.equals("")) {
                 log.info("OTP can not be null or empty");
                 return new ResponseEntity<>(Constants.OTP_NULL_OR_EMPTY_EXCEPTION, HttpStatus.BAD_REQUEST);
             } else if (savedUserOtp.getOtp() == null || savedUserOtp.getOtp().equals("")) {
                 log.info("Invalid OTP");
                 return new ResponseEntity<>(Constants.INVALID_OTP_EXCEPTION, HttpStatus.BAD_REQUEST);
-            } else if (!userOtpDto.getOtp().equals(savedUserOtp.getOtp())) {
+            } else if (!otp.equals(savedUserOtp.getOtp())) {
                 log.info("Invalid OTP");
                 return new ResponseEntity<>(Constants.INVALID_OTP_EXCEPTION, HttpStatus.BAD_REQUEST);
             } else if (isOtpExpired(savedUserOtp.getOtpCreatedDateTime())) {
                 log.info("OTP Expired");
-                return new ResponseEntity<>(Constants.OTP_EXPIRED_EXCEPTION, HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(Constants.OTP_EXPIRED, HttpStatus.BAD_REQUEST);
             }
 
-            User user=findUserByEmail(userOtpDto.getUserName());
+            User user=findUserByEmail(userName);
             user.setVerified(true);
             User userVerified=userRepository.save(user);
 
@@ -342,7 +332,7 @@ public class UserService {
 
         UserOtp userOtp = optionalUserOtp.get();
         if(isOtpExpired(userOtp.getOtpCreatedDateTime())){
-            return new ResponseEntity<>(Constants.OTP_EXPIRED_EXCEPTION, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Constants.OTP_EXPIRED, HttpStatus.BAD_REQUEST);
         }
         // otp validated
         try {

@@ -136,11 +136,12 @@ public class PublicController {
     }
 
 
-    @PostMapping("/verify-user")
-    public ResponseEntity<?> verifyUser(@RequestBody UserOtpDto userOtpDto){
-        log.info("sd");
+    @GetMapping("/verify-user")
+    public ResponseEntity<?> verifyUser(@RequestParam("userName") String userName,
+                                        @RequestParam("otp") String otp){
+        log.info("User email verification begin");
         try {
-            ResponseEntity<?> response=userService.verifyUser(userOtpDto);
+            ResponseEntity<?> response=userService.verifyUser(userName, otp);
             return response;
         }catch (Exception e){
             return new ResponseEntity<>(Constants.EXCEPTION_OCCURRED_DURING_USER_VERIFICATION, HttpStatus.BAD_REQUEST);
