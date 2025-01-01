@@ -19,6 +19,9 @@ public class Util {
     @Value("${url.baseUrl}")
     private String baseUrl;
 
+    @Value("${otp.expiration_time}")
+    private Long otpExpiredTimeInMinute;
+
     @Autowired
     private UserRepository userRepository;
 
@@ -39,23 +42,33 @@ public class Util {
         return false;
     }
 
-    public String getBodyForResetPasswordSendOtpMail(String userName, String otp) {
+    public String getBodyForResetPasswordSendOtpMail(String firstName, String userName, String otp) {
+        Long otpExpTime = otpExpiredTimeInMinute;
         String body = "<!DOCTYPE html>" +
-                "<html>" +
+                "<html lang='en'>" +
                 "<head>" +
+                "<meta charset='UTF-8'>" +
+                "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
                 "<style>" +
-                "body { font-family: Arial, sans-serif; line-height: 1.6; }" +
-                "p { margin: 10px 0; }" +
+                "  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                "  .email-container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }" +
+                "  .otp { font-size: 20px; font-weight: bold; color: #007BFF; }" +
+                "  .footer { font-size: 12px; color: #999; text-align: center; margin-top: 20px; }" +
                 "</style>" +
                 "</head>" +
                 "<body>" +
-                "<p>Dear " +userName + ",</p>" +
-                "<p>We received a request to reset your password. Here is your One-Time Password (OTP):</p>" +
-                "<p><b>OTP: " + otp + "</b></p>" +
-                "<p>Please use this OTP to reset your password. It is valid for 5 minutes. " +
-                "For your security, please do not share this OTP with anyone. " +
-                "If you did not request a password reset, please contact our support team immediately.</p>" +
-                "<p>Best regards,<br>The Journal Application Team</p>" +
+                "  <div class='email-container'>" +
+                "    <p>Dear <strong>" + capitalizeFirstChar(firstName) + "</strong>,</p>" +
+                "    <p>We’ve received a request to reset the password for your account.</p>" +
+                "    <p>To proceed, please use the following OTP (One-Time Password) to reset your password:</p>" +
+                "    <p class='otp'>" + otp + "</p>" +
+                "    <p><strong>Note:</strong> This OTP will expire in " + otpExpTime + " minutes. Please use it before it expires.</p>" +
+                "    <p>If you did not request this password reset, please ignore this email or contact our support team.</p>" +
+                "    <p>Best regards,</p>" +
+                "    <p>The JournalApp Team</p>" +
+                "    <hr>" +
+                "    <p class='footer'>This is a system-generated email. Please do not reply to this message.</p>" +
+                "  </div>" +
                 "</body>" +
                 "</html>";
         return body;
@@ -105,7 +118,7 @@ public class Util {
     public String getBodyForOtpVerificationMail(String firstName, String userName, String otp) {
         firstName=(firstName==null || firstName.equals(""))? "User":firstName;
         // String verifyUserEmailUrl= baseUrl + "/journal/public/verify-user?"+"userName="+userName+"&otp="+otp;
-
+        Long linkExpTime=otpExpiredTimeInMinute;
         String verifyUserEmailUrl=UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/journal/public/verify-user")
                 .queryParam("userName", userName)
@@ -129,7 +142,7 @@ public class Util {
                 "    <p>Dear <strong>" + capitalizeFirstChar(firstName) + "</strong>,</p>" +
                 "    <p>Thank you for signing up for JournalApp! To complete your registration and verify your email address, please click the button below:</p>" +
                 "    <a href='" + verifyUserEmailUrl + "' class='button'>Verify Email</a>" +
-                "    <p><strong>Note:</strong> This verification link will expire in 5 minutes. Please verify your email promptly.</p>" +
+                "    <p><strong>Note:</strong> This verification link will expire in "+ linkExpTime +" minutes. Please verify your email promptly.</p>" +
                 "    <p>Best regards,</p>" +
                 "    <p>The JournalApp Team</p>" +
                 "    <hr>" +
