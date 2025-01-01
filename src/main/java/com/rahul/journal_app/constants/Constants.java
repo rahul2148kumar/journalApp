@@ -41,4 +41,7 @@ public interface Constants {
     public static final String INCORRECT_PASSWORD = "Incorrect password";
     public static final String ADMIN_ACCESS_GRANTED = "Admin access provided to the user";
     public static final String USER_ALREADY_HAS_ADMIN_ACCESS = "User has already admin access";
+    public static final String INVALID_LINK = "The link you provided is invalid. Please check the link or request a new verification email.";
+    public static final String LINK_EXPIRED = "The verification link has expired. Please request a new verification link to complete your email verification.";
+    public static final String USER_ALREADY_VERIFIED = "User already verified";
 }
