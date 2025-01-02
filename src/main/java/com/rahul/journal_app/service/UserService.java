@@ -101,7 +101,7 @@ public class UserService {
             return new ResponseEntity<>(Constants.INVALID_PHONE_NUMBER, HttpStatus.BAD_REQUEST);
         }else if(user.getDateOfBirth()!=null && !util.isValidDateOfBirth(user.getDateOfBirth().toString(), "yyyy-MM-dd")){
             return new ResponseEntity<>(Constants.INVALID_DATE_OF_BIRTH, HttpStatus.BAD_REQUEST);
-        }else if(!user.getGender().toUpperCase().equals(Gender.MALE.toString()) && !user.getGender().toUpperCase().equals(Gender.FEMALE.toString())){
+        }else if(user.getGender()!=null && !user.getGender().toUpperCase().equals(Gender.MALE.toString()) && !user.getGender().toUpperCase().equals(Gender.FEMALE.toString())){
             return new ResponseEntity<>(Constants.INVALID_GENDER, HttpStatus.BAD_REQUEST);
         }
 
@@ -118,8 +118,9 @@ public class UserService {
                 savedUserInfo.setGender(user.getGender()!=null? user.getGender().toUpperCase():savedUserInfo.getGender());
                 savedUserInfo.setDateOfBirth(user.getDateOfBirth()!=null? user.getDateOfBirth():savedUserInfo.getDateOfBirth());
             }
-            User savedUser = userRepository.save(savedUserInfo);
-            return new ResponseEntity<>(savedUser, HttpStatus.OK);
+            User updatedUser = userRepository.save(savedUserInfo);
+            UserDto updatedUserDto=convertUserToUserDto(updatedUser);
+            return new ResponseEntity<>(updatedUserDto, HttpStatus.OK);
         }catch (Exception e){
             log.info("Error while updating user info in database: {}", e.getMessage(), e);
             throw new RuntimeException(e.getMessage());
@@ -271,7 +272,7 @@ public class UserService {
             User savedUser=userRepository.findByUserName(userName);
             if(savedUser.isVerified()){
                 log.info("User already verified");
-                return new ResponseEntity<>(Constants.USER_ALREADY_VERIFIED, HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(Constants.USER_ALREADY_VERIFIED, HttpStatus.OK);
             }
             if (otp == null || otp.equals("")) {
                 log.info("OTP can not be null or empty");
