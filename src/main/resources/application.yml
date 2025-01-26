@@ -74,3 +74,8 @@ otp:
 
 url:
     baseUrl: ${APPLICATION_BASE_URL}
+
+twilio:
+    phoneNo: ${TWILIO_PHONE_NO}
+    accountSID: ${TWILIO_SID}
+    authToken: ${TWILIO_AUTH_TOKEN}
