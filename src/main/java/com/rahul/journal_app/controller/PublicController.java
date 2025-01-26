@@ -6,6 +6,7 @@ import com.rahul.journal_app.entity.User;
 import com.rahul.journal_app.model.UserOtpDto;
 import com.rahul.journal_app.repository.UserRepository;
 import com.rahul.journal_app.request.PasswordRestRequest;
+import com.rahul.journal_app.service.SmsService;
 import com.rahul.journal_app.service.TwitterService;
 import com.rahul.journal_app.service.UserDetailsServiceImpl;
 import com.rahul.journal_app.service.UserService;
@@ -46,6 +47,8 @@ public class PublicController {
 
     private final UserService userService;
     private final TwitterService twitterService;
+    @Autowired
+    private SmsService smsService;
 
     public PublicController(UserService userService, TwitterService twitterService) {
         this.userService = userService;
@@ -85,7 +88,7 @@ public class PublicController {
             log.info("Exception: {}",e.getMessage());
             return new ResponseEntity<>(Constants.EXCEPTION_OCCURRED_DURING_USER_REGISTRATION, HttpStatus.OK);
         }
-        return new ResponseEntity<>(Constants.USER_REGISTRATION_SUCCESSFUL, HttpStatus.OK);
+        return new ResponseEntity<>(Constants.USER_VERIFICATION_EMAIL_SENT_SUCCESSFULLY+user.getUserName(), HttpStatus.OK);
     }
 
     // create jwt token
@@ -157,6 +160,19 @@ public class PublicController {
             throw new RuntimeException(Constants.PASSWORD_RESET_EXCEPTION_OCCURRED);
         }
         return response;
+    }
+
+    @PostMapping("/send-sms")
+    public ResponseEntity<?> sendSMS(@RequestParam("phoneNo") String phoneNo){
+        if (!phoneNo.startsWith("+")) {
+            phoneNo= "+" + phoneNo;
+        }
+        try{
+            ResponseEntity<?> response=smsService.sendWelcomeSMST(phoneNo);
+            return response;
+        }catch (Exception e){
+            return new ResponseEntity<>("Exception while sending sms to user", HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
