@@ -19,6 +19,7 @@ public interface Constants {
     public static final String ADMIN_ACCESS_GRANT_EXCEPTION = "Exception while granting admin access of a user";
     public static final String ADMIN_ACCESS_REMOVE_EXCEPTION = "Exception while removing admin access of a user";
     public static final String USER_DOES_NOT_HAVE_ADMIN_ACCESS = "User does not have admin access.";
+    public static final String USER_VERIFICATION_EMAIL_SENT_SUCCESSFULLY = "A verification email has been sent to: ";
 
 
 
